@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
 import { getCurrentUser } from '@/lib/auth/helpers'
 import { formatChips } from '@/lib/utils/format'
+import { BetNotification } from '@/components/betting/BetNotification'
 
 export default async function DashboardLayout({
   children,
@@ -100,6 +101,9 @@ export default async function DashboardLayout({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
+
+      {/* Real-time Notifications */}
+      <BetNotification />
     </div>
   )
 }

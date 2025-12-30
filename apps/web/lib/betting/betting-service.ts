@@ -4,6 +4,7 @@ import { OddsService } from './odds-service'
 import { OddsCalculator } from './odds-calculator'
 import { BetType, BetSelection, BetStatus } from '@repo/database'
 import { Decimal } from '@prisma/client/runtime/library'
+import { getEventBus } from '@/lib/realtime/event-bus'
 
 export interface PlaceBetParams {
   userId: string
@@ -116,12 +117,26 @@ export class BettingService {
       })
 
       // 7. Update odds based on new bet volume
-      await this.oddsService.updateOddsAfterBet(
+      const newOdds = await this.oddsService.updateOddsAfterBet(
         matchId,
         betType,
         selection,
         amount
       )
+
+      // 8. Publish real-time events
+      const eventBus = getEventBus()
+
+      // Notify user of bet placement
+      await eventBus.publishBetPlaced(userId, {
+        id: bet.id,
+        amount: Number(bet.amount),
+        odds: Number(bet.odds),
+        potentialPayout: Number(bet.potentialPayout),
+      })
+
+      // Notify match watchers of new odds
+      await eventBus.publishOddsUpdate(matchId, newOdds)
 
       return bet
     })
