@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth/helpers'
 import { prisma } from '@/lib/db/prisma'
 import { z } from 'zod'
 import { MatchStatus } from '@repo/database'
+import { getEventBus } from '@/lib/realtime/event-bus'
 
 const updateMatchSchema = z.object({
   status: z.nativeEnum(MatchStatus).optional(),
@@ -87,6 +88,16 @@ export async function PATCH(
       // await settleBets(match.id, data.winnerId)
       console.log(`Match ${id} completed. Bet settlement to be implemented in Phase 3.`)
     }
+
+    // Publish match update event
+    const eventBus = getEventBus()
+    await eventBus.publishMatchUpdate(id, {
+      status: match.status,
+      player1Score: match.player1Score,
+      player2Score: match.player2Score,
+      bettingOpen: match.bettingOpen,
+      winnerId: match.winnerId,
+    })
 
     return NextResponse.json({ match })
   } catch (error: any) {
