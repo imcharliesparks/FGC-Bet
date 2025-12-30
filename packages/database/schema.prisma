@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String        @id @default(cuid())
+  clerkId           String        @unique
+  email             String        @unique
+  username          String?       @unique
+  firstName         String?
+  lastName          String?
+  imageUrl          String?
+  chipBalance       Decimal       @default(10000) @db.Decimal(10,2)
+  preferredGames    FightingGame[]
+  emailNotifications Boolean      @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  lastLoginAt       DateTime?
+  bets              Bet[]
+  transactions      Transaction[]
+  
+  @@index([clerkId])
+  @@index([email])
+}
+
+model Tournament {
+  id                String        @id @default(cuid())
+  startGgId         String?       @unique
+  name              String
+  slug              String        @unique
+  game              FightingGame
+  startDate         DateTime
+  endDate           DateTime?
+  location          String?
+  streamUrl         String?
+  imageUrl          String?
+  isActive          Boolean       @default(true)
+  isFeatured        Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  matches           Match[]
+  
+  @@index([game, startDate])
+  @@index([isActive, isFeatured])
+}
+
+model Player {
+  id                String        @id @default(cuid())
+  startGgId         String?       @unique
+  gamerTag          String        @unique
+  country           String?
+  mainCharacter     String?
+  imageUrl          String?
+  twitterHandle     String?
+  totalMatches      Int           @default(0)
+  wins              Int           @default(0)
+  losses            Int           @default(0)
+  eloRating         Int           @default(1500)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  player1Matches    Match[]       @relation("Player1Matches")
+  player2Matches    Match[]       @relation("Player2Matches")
+  
+  @@index([gamerTag])
+  @@index([eloRating])
+}
+
+model Match {
+  id                String        @id @default(cuid())
+  startGgId         String?       @unique
+  tournamentId      String
+  tournament        Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  round             String
+  game              FightingGame
+  bestOf            Int           @default(3)
+  player1Id         String
+  player1           Player        @relation("Player1Matches", fields: [player1Id], references: [id])
+  player2Id         String
+  player2           Player        @relation("Player2Matches", fields: [player2Id], references: [id])
+  status            MatchStatus   @default(SCHEDULED)
+  scheduledStart    DateTime
+  actualStart       DateTime?
+  completedAt       DateTime?
+  winnerId          String?
+  player1Score      Int?
+  player2Score      Int?
+  bettingOpen       Boolean       @default(false)
+  bettingClosedAt   DateTime?
+  streamUrl         String?
+  vodUrl            String?
+  notes             String?       @db.Text
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  bets              Bet[]
+  oddsHistory       OddsSnapshot[]
+  
+  @@index([tournamentId, scheduledStart])
+  @@index([status, bettingOpen])
+  @@index([game, status])
+}
+
+model OddsSnapshot {
+  id                String        @id @default(cuid())
+  matchId           String
+  match             Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  betType           BetType
+  player1Odds       Decimal       @db.Decimal(6,2)
+  player2Odds       Decimal       @db.Decimal(6,2)
+  line              Decimal?      @db.Decimal(3,1)
+  overOdds          Decimal?      @db.Decimal(6,2)
+  underOdds         Decimal?      @db.Decimal(6,2)
+  player1Volume     Decimal       @default(0) @db.Decimal(10,2)
+  player2Volume     Decimal       @default(0) @db.Decimal(10,2)
+  overVolume        Decimal       @default(0) @db.Decimal(10,2)
+  underVolume       Decimal       @default(0) @db.Decimal(10,2)
+  timestamp         DateTime      @default(now())
+  
+  @@index([matchId, timestamp])
+  @@index([matchId, betType])
+}
+
+model Bet {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  matchId           String
+  match             Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  betType           BetType
+  selection         BetSelection
+  amount            Decimal       @db.Decimal(10,2)
+  odds              Decimal       @db.Decimal(6,2)
+  potentialPayout   Decimal       @db.Decimal(10,2)
+  status            BetStatus     @default(PENDING)
+  placedAt          DateTime      @default(now())
+  settledAt         DateTime?
+  actualPayout      Decimal?      @db.Decimal(10,2)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([userId, status])
+  @@index([matchId, status])
+  @@index([placedAt])
+}
+
+model Transaction {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  type              TransactionType
+  amount            Decimal       @db.Decimal(10,2)
+  balanceBefore     Decimal       @db.Decimal(10,2)
+  balanceAfter      Decimal       @db.Decimal(10,2)
+  relatedBetId      String?
+  description       String?
+  createdAt         DateTime      @default(now())
+  
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+}
+
+enum FightingGame {
+  STREET_FIGHTER_6
+  TEKKEN_8
+  GUILTY_GEAR_STRIVE
+  MORTAL_KOMBAT_1
+  GRANBLUE_FANTASY_VERSUS
+  KING_OF_FIGHTERS_XV
+  UNDER_NIGHT
+  BLAZBLUE
+  DRAGON_BALL_FIGHTERZ
+  SKULLGIRLS
+  MULTIVERSUS
+  OTHER
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
+enum BetType {
+  MONEYLINE
+  HANDICAP
+  TOTAL_GAMES
+}
+
+enum BetSelection {
+  PLAYER_1
+  PLAYER_2
+  OVER
+  UNDER
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
+  CANCELLED
+  PUSHED
+}
+
+enum TransactionType {
+  BET_PLACED
+  BET_WON
+  BET_LOST
+  BET_REFUND
+  ADMIN_ADJUSTMENT
+  DAILY_BONUS
+  WELCOME_BONUS
+}

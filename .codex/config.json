@@ -1,0 +1,53 @@
+{
+  "projectType": "monorepo",
+  "language": "typescript",
+  "frameworks": [
+    "nextjs",
+    "react",
+    "prisma",
+    "nodejs"
+  ],
+  "packageManager": "bun",
+  "monorepo": {
+    "appsDir": "apps",
+    "packagesDir": "packages"
+  },
+  "packages": {
+    "database": {
+      "path": "packages/database",
+      "description": "Prisma schema, client, and database utilities",
+      "exports": ["prisma", "types", "enums"]
+    },
+    "ui": {
+      "path": "packages/ui",
+      "description": "Shared React components (ShadCN-based)",
+      "exports": ["components", "utils"]
+    }
+  },
+  "apps": {
+    "web": {
+      "path": "apps/web",
+      "framework": "nextjs",
+      "description": "Next.js web application for FGC betting platform"
+    }
+  },
+  "conventions": {
+    "useAppRouter": true,
+    "stateManagement": ["react-query"],
+    "styling": ["tailwind", "shadcn"],
+    "apiStyle": ["REST"],
+    "auth": "clerk",
+    "database": "prisma"
+  },
+  "rules": [
+    "Never create files outside existing packages without explicit instruction",
+    "Do not duplicate shared types across apps - use @repo/database exports",
+    "Prefer shared packages over app-local utilities",
+    "Assume strict TypeScript and ESLint are enabled",
+    "Always use Prisma types from @repo/database, never redefine them",
+    "Use @repo/ui for shared components, not app-local duplicates",
+    "Database operations should always go through Prisma client from @repo/database",
+    "For fictional currency, use 'chips' terminology consistently",
+    "All betting odds use American format (e.g., -150, +200)"
+  ]
+}

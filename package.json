@@ -1,0 +1,30 @@
+{
+  "name": "fgc-bet",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "bun@1.2.10",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "db:push": "bun run --filter @repo/database db:push",
+    "db:studio": "bun run --filter @repo/database db:studio",
+    "db:generate": "bun run --filter @repo/database db:generate",
+    "db:seed": "bun run --filter @repo/database db:seed"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "turbo": "^2.3.0",
+    "prettier": "^3.1.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
