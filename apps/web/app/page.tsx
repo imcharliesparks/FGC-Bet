@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 const featureLinks = [
   { href: "/dashboard", title: "Dashboard", description: "Your balance, active bets, and upcoming matches." },
@@ -43,7 +43,11 @@ export default function Home() {
               <UserButton appearance={{ elements: { avatarBox: "h-9 w-9" } }} />
             </SignedIn>
             <SignedOut>
-              <UserButton appearance={{ elements: { avatarBox: "h-9 w-9" } }} />
+              <SignInButton mode="modal">
+                <button className="rounded-lg border border-zinc-700 px-3 py-2 text-sm font-semibold text-white transition hover:border-white hover:bg-zinc-800">
+                  Sign in
+                </button>
+              </SignInButton>
             </SignedOut>
           </div>
         </div>
