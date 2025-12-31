@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth/helpers'
+import { requirePageAuth } from '@/lib/auth/helpers'
 import { prisma } from '@/lib/db/prisma'
 import { formatChips, formatRelativeTime } from '@/lib/utils/format'
 import Link from 'next/link'
@@ -25,7 +25,7 @@ type UpcomingMatch = Prisma.MatchGetPayload<{
 }>
 
 export default async function DashboardPage() {
-  const user = await requireAuth()
+  const user = await requirePageAuth()
 
   // Get user's active bets
   const activeBets: DashboardBet[] = await prisma.bet.findMany({

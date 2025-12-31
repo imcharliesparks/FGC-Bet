@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
-import { requireAdmin } from '@/lib/auth/helpers'
+import { requirePageAdmin } from '@/lib/auth/helpers'
 import { redirect } from 'next/navigation'
 
 export default async function AdminLayout({
@@ -8,11 +8,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  try {
-    await requireAdmin()
-  } catch (error) {
-    redirect('/dashboard')
-  }
+  await requirePageAdmin()
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">

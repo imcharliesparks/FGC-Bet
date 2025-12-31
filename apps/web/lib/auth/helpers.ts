@@ -1,4 +1,5 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db/prisma'
 
 /**
@@ -51,6 +52,30 @@ export async function requireAuth() {
   })
 
   return created
+}
+
+/**
+ * Require authentication for page/server components.
+ * Redirects to /unauthorized instead of throwing.
+ */
+export async function requirePageAuth() {
+  try {
+    return await requireAuth()
+  } catch {
+    redirect('/unauthorized')
+  }
+}
+
+/**
+ * Require admin role for page/server components.
+ * Redirects to /unauthorized instead of throwing.
+ */
+export async function requirePageAdmin() {
+  try {
+    await requireAdmin()
+  } catch {
+    redirect('/unauthorized')
+  }
 }
 
 /**

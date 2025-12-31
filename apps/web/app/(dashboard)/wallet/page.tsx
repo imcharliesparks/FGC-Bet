@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth/helpers'
+import { requireAuth, requirePageAuth } from '@/lib/auth/helpers'
 import { WalletService } from '@/lib/wallet/service'
 import { formatChips, formatRelativeTime } from '@/lib/utils/format'
 import { TransactionType, type Transaction } from '@repo/database'
@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache'
 async function addCredits(formData: FormData) {
   'use server'
 
-  const user = await requireAuth()
+  const user = await requirePageAuth()
   const amount = Number(formData.get('amount'))
   const note = (formData.get('note') as string | null)?.toString().slice(0, 120) || 'Manual top-up'
 
