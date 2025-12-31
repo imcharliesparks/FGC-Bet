@@ -1,5 +1,6 @@
 # To Dos
-
+### Major
+- [ ] Add post-auth flow to handle ID verification, user info gathering, etc.
 
 ### Optional/Future Enhancements
 - [ ] Migrate from Clerk to Neon Auth
