@@ -1,11 +1,12 @@
 import { requireAuth } from '@/lib/auth/helpers'
 import { prisma } from '@/lib/db/prisma'
 import { formatChips, formatRelativeTime } from '@/lib/utils/format'
+import type { BetWithRelations } from '@/types'
 
 export default async function BetsPage() {
   const user = await requireAuth()
 
-  const [activeBets, completedBets] = await Promise.all([
+  const [activeBets, completedBets]: [BetWithRelations[], BetWithRelations[]] = await Promise.all([
     prisma.bet.findMany({
       where: {
         userId: user.id,

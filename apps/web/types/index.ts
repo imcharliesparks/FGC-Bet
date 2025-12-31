@@ -15,6 +15,21 @@ export type {
   TransactionType,
 } from '@repo/database'
 
+// Prisma helpers
+import type { Prisma } from '@repo/database'
+
+export type BetWithRelations = Prisma.BetGetPayload<{
+  include: {
+    match: {
+      include: {
+        player1: true
+        player2: true
+        tournament: true
+      }
+    }
+  }
+}>
+
 // Extended types for API responses
 export interface MatchWithDetails {
   id: string
