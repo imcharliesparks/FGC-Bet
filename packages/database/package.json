@@ -2,13 +2,14 @@
   "name": "@repo/database",
   "version": "0.0.0",
   "private": true,
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "db:generate": "prisma generate",
     "db:push": "prisma db push --skip-generate && prisma generate",
     "db:studio": "prisma studio",
-    "db:seed": "bun run seed.ts"
+    "db:seed": "bun run seed.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.8.0"
