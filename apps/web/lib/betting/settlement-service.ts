@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import { WalletService } from '@/lib/wallet/service'
 import { Decimal } from '@prisma/client/runtime/library'
 import { getEventBus } from '@/lib/realtime/event-bus'
-import type { Prisma } from '@repo/database'
+import type { Prisma } from '@prisma/client'
 
 export class SettlementService {
   private walletService: typeof WalletService

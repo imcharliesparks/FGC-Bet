@@ -2,7 +2,7 @@ import { requireAuth } from '@/lib/auth/helpers'
 import { prisma } from '@/lib/db/prisma'
 import { formatChips, formatRelativeTime } from '@/lib/utils/format'
 import Link from 'next/link'
-import type { Prisma } from '@repo/database'
+import type { Prisma } from '@prisma/client'
 
 type DashboardBet = Prisma.BetGetPayload<{
   include: {

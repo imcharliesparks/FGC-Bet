@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { formatRelativeTime, formatGameName } from '@/lib/utils/format'
 import Link from 'next/link'
-import type { Prisma } from '@repo/database'
+import type { Prisma } from '@prisma/client'
 
 type AdminMatch = Prisma.MatchGetPayload<{
   include: {

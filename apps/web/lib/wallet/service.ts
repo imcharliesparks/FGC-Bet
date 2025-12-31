@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
-import { TransactionType, type Prisma } from '@repo/database'
+import { TransactionType } from '@repo/database'
+import type { Prisma } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/library'
 
 export class WalletService {

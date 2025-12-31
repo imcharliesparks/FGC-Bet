@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import { formatGameName, formatRelativeTime } from '@/lib/utils/format'
 import Link from 'next/link'
 import { ImportTournamentForm } from '@/components/admin/import-tournament-form'
-import type { Prisma } from '@repo/database'
+import type { Prisma } from '@prisma/client'
 
 type AdminTournament = Prisma.TournamentGetPayload<{
   include: {
