@@ -84,9 +84,12 @@ export default async function AdminTournamentsPage() {
               tournaments.map((tournament) => (
                 <tr key={tournament.id} className="hover:bg-zinc-900/60">
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-white">
+                    <Link
+                      href={`/admin/tournaments/${tournament.id}/matches`}
+                      className="text-sm font-medium text-white underline decoration-dotted hover:text-indigo-200"
+                    >
                       {tournament.name}
-                    </div>
+                    </Link>
                     {tournament.startGgId && (
                       <div className="text-xs text-zinc-500">
                         start.gg ID: {tournament.startGgId}

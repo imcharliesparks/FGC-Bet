@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
-import { getCurrentUser } from '@/lib/auth/helpers'
+import { getCurrentUser, isAdmin } from '@/lib/auth/helpers'
 import { formatChips } from '@/lib/utils/format'
 import { BetNotification } from '@/components/betting/BetNotification'
 
@@ -10,6 +10,7 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }) {
   const user = await getCurrentUser()
+  const admin = await isAdmin()
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
@@ -46,6 +47,20 @@ export default async function DashboardLayout({
                 >
                   Wallet
                 </Link>
+                <Link
+                  href="/tournaments"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
+                >
+                  Tournaments
+                </Link>
+                {admin && (
+                  <Link
+                    href="/admin"
+                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
+                  >
+                    Admin
+                  </Link>
+                )}
               </div>
             </div>
             <div className="flex items-center space-x-4">

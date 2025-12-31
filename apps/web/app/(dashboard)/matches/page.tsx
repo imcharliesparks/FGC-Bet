@@ -2,13 +2,13 @@ import { prisma } from '@/lib/db/prisma'
 import { MatchesPage } from '@/components/matches/MatchesPage'
 
 export default async function MatchesPageRoute() {
-  // Get all matches with betting open or currently live
+  const now = new Date()
+
+  // Get all matches with betting open or currently live (fighting games only)
   const matches = await prisma.match.findMany({
     where: {
-      OR: [
-        { bettingOpen: true },
-        { status: 'LIVE' },
-      ],
+      game: { not: 'OTHER' },
+      OR: [{ bettingOpen: true }, { status: 'LIVE' }],
     },
     include: {
       player1: true,
@@ -21,6 +21,28 @@ export default async function MatchesPageRoute() {
     take: 50,
   })
 
+  const upcomingTournaments = await prisma.tournament.findMany({
+    where: {
+      isActive: true,
+      game: { not: 'OTHER' },
+      startDate: { gte: now },
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      game: true,
+      startDate: true,
+      endDate: true,
+      location: true,
+      imageUrl: true,
+      isFeatured: true,
+      _count: { select: { matches: true } },
+    },
+    orderBy: { startDate: 'asc' },
+    take: 6,
+  })
+
   return (
     <div className="space-y-6">
       <div>
@@ -30,7 +52,10 @@ export default async function MatchesPageRoute() {
         </p>
       </div>
 
-      <MatchesPage initialMatches={matches} />
+      <MatchesPage
+        initialMatches={matches}
+        upcomingTournaments={upcomingTournaments}
+      />
     </div>
   )
 }

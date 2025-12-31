@@ -28,6 +28,12 @@ export default async function AdminLayout({
                   Matches
                 </Link>
                 <Link
+                  href="/admin/stats"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
+                >
+                  Stats
+                </Link>
+                <Link
                   href="/admin/tournaments"
                   className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
                 >

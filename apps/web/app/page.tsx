@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from "@clerk/nextjs";
 
 const featureLinks = [
   { href: "/dashboard", title: "Dashboard", description: "Your balance, active bets, and upcoming matches." },
@@ -15,6 +15,9 @@ const featureLinks = [
 ];
 
 export default function Home() {
+  const { user } = useUser();
+  const isAdmin = user?.publicMetadata?.role === 'admin';
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-50">
       <header className="border-b border-zinc-800 bg-zinc-900/60 backdrop-blur">
@@ -27,15 +30,20 @@ export default function Home() {
               <Link href="/matches" className="hover:text-white">
                 Matches
               </Link>
+              <Link href="/tournaments" className="hover:text-white">
+                Tournaments
+              </Link>
               <Link href="/bets" className="hover:text-white">
                 My Bets
               </Link>
               <Link href="/dashboard" className="hover:text-white">
                 Dashboard
               </Link>
-              <Link href="/admin" className="hover:text-white">
-                Admin
-              </Link>
+              {isAdmin && (
+                <Link href="/admin" className="hover:text-white">
+                  Admin
+                </Link>
+              )}
             </nav>
           </div>
           <div className="flex items-center gap-3">

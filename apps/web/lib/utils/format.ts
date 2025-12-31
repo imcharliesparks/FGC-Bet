@@ -57,6 +57,9 @@ export function formatGameName(game: string): string {
     DRAGON_BALL_FIGHTERZ: 'Dragon Ball FighterZ',
     SKULLGIRLS: 'Skullgirls',
     MULTIVERSUS: 'MultiVersus',
+    SUPER_SMASH_BROS_MELEE: 'Super Smash Bros. Melee',
+    SUPER_SMASH_BROS_ULTIMATE: 'Super Smash Bros. Ultimate',
+    SUPER_SMASH_BROS_BRAWL: 'Super Smash Bros. Brawl',
     OTHER: 'Other',
   }
 
@@ -81,6 +84,9 @@ export function getGameShortName(game: string): string {
     DRAGON_BALL_FIGHTERZ: 'DBFZ',
     SKULLGIRLS: 'SG',
     MULTIVERSUS: 'MVS',
+    SUPER_SMASH_BROS_MELEE: 'Melee',
+    SUPER_SMASH_BROS_ULTIMATE: 'Ultimate',
+    SUPER_SMASH_BROS_BRAWL: 'Brawl',
     OTHER: 'Other',
   }
 

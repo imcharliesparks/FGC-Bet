@@ -1,64 +1,77 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { formatGameName, formatRelativeTime } from '@/lib/utils/format'
 import { MatchDetailsDialog } from '@/components/matches/MatchDetailsDialog'
 
-type AdminMatch = Prisma.MatchGetPayload<{
+type TournamentMatch = Prisma.MatchGetPayload<{
   include: {
     player1: true
     player2: true
     tournament: true
-    _count: {
-      select: { bets: true }
-    }
+    _count: { select: { bets: true } }
   }
 }>
 
-export default async function AdminMatchesPage() {
-  const matches: AdminMatch[] = await prisma.match.findMany({
+export default async function TournamentMatchesPage(props: {
+  params: Promise<{ id: string }>
+}) {
+  const { id: tournamentId } = await props.params
+
+  if (!tournamentId) {
+    return notFound()
+  }
+
+  const tournament = await prisma.tournament.findUnique({
+    where: { id: tournamentId },
+  })
+
+  if (!tournament) {
+    return notFound()
+  }
+
+  const matches: TournamentMatch[] = await prisma.match.findMany({
+    where: { tournamentId },
     include: {
       player1: true,
       player2: true,
       tournament: true,
-      _count: {
-        select: { bets: true },
-      },
+      _count: { select: { bets: true } },
     },
-    orderBy: {
-      scheduledStart: 'desc',
-    },
-    take: 50,
+    orderBy: [{ scheduledStart: 'desc' }],
   })
 
   return (
     <div className="space-y-6 text-zinc-50">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Match Management</h1>
-          <p className="mt-2 text-zinc-400">Create and manage betting matches</p>
+          <p className="text-sm text-zinc-400">Tournament Matches</p>
+          <h1 className="text-3xl font-bold text-white">{tournament.name}</h1>
+          <div className="mt-1 text-sm text-zinc-400">
+            {formatGameName(tournament.game)} • {formatRelativeTime(tournament.startDate)}
+            {tournament.location ? ` • ${tournament.location}` : ''}
+          </div>
         </div>
         <Link
-          href="/admin/matches/new"
-          className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500"
+          href="/admin/tournaments"
+          className="text-sm font-medium text-indigo-300 hover:text-indigo-200"
         >
-          Create Match
+          ← Back to tournaments
         </Link>
       </div>
 
-      {/* Matches Table */}
       <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/80 shadow-xl shadow-black/20">
+        <div className="border-b border-zinc-800 px-6 py-4">
+          <h2 className="text-xl font-semibold text-white">
+            Matches ({matches.length})
+          </h2>
+        </div>
         <table className="min-w-full divide-y divide-zinc-800">
           <thead className="bg-zinc-900/80">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Match
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Tournament
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Game
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Time
@@ -77,8 +90,8 @@ export default async function AdminMatchesPage() {
           <tbody className="divide-y divide-zinc-800 bg-zinc-950/40">
             {matches.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
-                  No matches found. Create your first match to get started.
+                <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
+                  No matches found for this tournament.
                 </td>
               </tr>
             ) : (
@@ -98,12 +111,6 @@ export default async function AdminMatchesPage() {
                         </button>
                       }
                     />
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <div className="text-sm text-zinc-200">{match.tournament.name}</div>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <div className="text-sm text-zinc-200">{formatGameName(match.game)}</div>
                   </td>
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="text-sm text-zinc-200">

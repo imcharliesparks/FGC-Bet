@@ -83,87 +83,95 @@ export class MatchImporter {
   ): Promise<number> {
     const gameEnum = mapGameToEnum(gameName)
 
-    // Get all sets (matches) from event
-    const setsData = await this.client.getEventSets(eventId)
-    const sets = setsData.event.sets.nodes
-
+    // Get all sets (matches) from event, paginated to avoid start.gg complexity limits
+    let page = 1
+    const perPage = 25
     let matchesImported = 0
+    let totalPages = 1
 
-    for (const set of sets) {
-      try {
-        // Skip if not a valid 1v1 match
-        if (set.slots.length !== 2) continue
-        if (!set.slots[0]?.entrant?.participants?.[0]) continue
-        if (!set.slots[1]?.entrant?.participants?.[0]) continue
+    while (page <= totalPages) {
+      const setsData = await this.client.getEventSets(eventId, page, perPage)
+      const sets = setsData.event.sets.nodes
+      totalPages = setsData.event.sets.pageInfo.totalPages || 1
 
-        const player1Data = set.slots[0].entrant.participants[0]
-        const player2Data = set.slots[1].entrant.participants[0]
+      for (const set of sets) {
+        try {
+          // Skip if not a valid 1v1 match
+          if (set.slots.length !== 2) continue
+          if (!set.slots[0]?.entrant?.participants?.[0]) continue
+          if (!set.slots[1]?.entrant?.participants?.[0]) continue
 
-        // Create or find players
-        const player1 = await this.findOrCreatePlayer(
-          player1Data.gamerTag,
-          player1Data.id.toString()
-        )
-        const player2 = await this.findOrCreatePlayer(
-          player2Data.gamerTag,
-          player2Data.id.toString()
-        )
+          const player1Data = set.slots[0].entrant.participants[0]
+          const player2Data = set.slots[1].entrant.participants[0]
 
-        // Determine match status
-        let status: MatchStatus = 'SCHEDULED'
-        if (set.completedAt) status = 'COMPLETED'
-        else if (set.startedAt) status = 'LIVE'
+          // Create or find players
+          const player1 = await this.findOrCreatePlayer(
+            player1Data.gamerTag,
+            player1Data.id.toString()
+          )
+          const player2 = await this.findOrCreatePlayer(
+            player2Data.gamerTag,
+            player2Data.id.toString()
+          )
 
-        // Calculate scheduled start time (use startedAt or default to now)
-        const scheduledStart = set.startedAt
-          ? new Date(set.startedAt * 1000)
-          : new Date()
+          // Determine match status
+          let status: MatchStatus = 'SCHEDULED'
+          if (set.completedAt) status = 'COMPLETED'
+          else if (set.startedAt) status = 'LIVE'
 
-        // Check if match already exists
-        const existingMatch = await prisma.match.findUnique({
-          where: { startGgId: set.id.toString() },
-        })
+          // Calculate scheduled start time (use startedAt or default to now)
+          const scheduledStart = set.startedAt
+            ? new Date(set.startedAt * 1000)
+            : new Date()
 
-        if (existingMatch) {
-          // Update existing match
-          await prisma.match.update({
+          // Check if match already exists
+          const existingMatch = await prisma.match.findUnique({
             where: { startGgId: set.id.toString() },
-            data: {
-              status,
-              actualStart: set.startedAt ? new Date(set.startedAt * 1000) : null,
-              completedAt: set.completedAt ? new Date(set.completedAt * 1000) : null,
-              player1Score: set.slots[0].standing?.stats?.score?.value || null,
-              player2Score: set.slots[1].standing?.stats?.score?.value || null,
-              winnerId: set.winnerId?.toString() || null,
-            },
           })
-        } else {
-          // Create new match
-          await prisma.match.create({
-            data: {
-              startGgId: set.id.toString(),
-              tournamentId,
-              game: gameEnum,
-              player1Id: player1.id,
-              player2Id: player2.id,
-              status,
-              scheduledStart,
-              actualStart: set.startedAt ? new Date(set.startedAt * 1000) : null,
-              completedAt: set.completedAt ? new Date(set.completedAt * 1000) : null,
-              player1Score: set.slots[0].standing?.stats?.score?.value || null,
-              player2Score: set.slots[1].standing?.stats?.score?.value || null,
-              winnerId: set.winnerId?.toString() || null,
-              round: set.fullRoundText,
-              bettingOpen: status === 'SCHEDULED', // Auto-enable betting for scheduled matches
-            },
-          })
-        }
 
-        matchesImported++
-      } catch (error) {
-        console.error(`Error importing set ${set.id}:`, error)
-        // Continue with next match
+          if (existingMatch) {
+            // Update existing match
+            await prisma.match.update({
+              where: { startGgId: set.id.toString() },
+              data: {
+                status,
+                actualStart: set.startedAt ? new Date(set.startedAt * 1000) : null,
+                completedAt: set.completedAt ? new Date(set.completedAt * 1000) : null,
+                player1Score: set.slots[0].standing?.stats?.score?.value || null,
+                player2Score: set.slots[1].standing?.stats?.score?.value || null,
+                winnerId: set.winnerId?.toString() || null,
+              },
+            })
+          } else {
+            // Create new match
+            await prisma.match.create({
+              data: {
+                startGgId: set.id.toString(),
+                tournamentId,
+                game: gameEnum,
+                player1Id: player1.id,
+                player2Id: player2.id,
+                status,
+                scheduledStart,
+                actualStart: set.startedAt ? new Date(set.startedAt * 1000) : null,
+                completedAt: set.completedAt ? new Date(set.completedAt * 1000) : null,
+                player1Score: set.slots[0].standing?.stats?.score?.value || null,
+                player2Score: set.slots[1].standing?.stats?.score?.value || null,
+                winnerId: set.winnerId?.toString() || null,
+                round: set.fullRoundText,
+                bettingOpen: status === 'SCHEDULED', // Auto-enable betting for scheduled matches
+              },
+            })
+          }
+
+          matchesImported++
+        } catch (error) {
+          console.error(`Error importing set ${set.id}:`, error)
+          // Continue with next match
+        }
       }
+
+      page += 1
     }
 
     return matchesImported

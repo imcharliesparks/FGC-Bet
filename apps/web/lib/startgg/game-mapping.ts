@@ -39,6 +39,23 @@ export function mapGameToEnum(gameName: string): FightingGame {
   if (normalized.includes('multiversus')) {
     return 'MULTIVERSUS'
   }
+  if (normalized.includes('melee')) {
+    return 'SUPER_SMASH_BROS_MELEE'
+  }
+  if (
+    normalized.includes('ultimate') ||
+    normalized.includes('smash ultimate') ||
+    normalized.includes('ssbu')
+  ) {
+    return 'SUPER_SMASH_BROS_ULTIMATE'
+  }
+  if (normalized.includes('brawl')) {
+    return 'SUPER_SMASH_BROS_BRAWL'
+  }
+  if (normalized.includes('smash') || normalized.includes('ssb')) {
+    // generic Smash fallback
+    return 'SUPER_SMASH_BROS_ULTIMATE'
+  }
 
   // Default to OTHER if no match
   return 'OTHER'

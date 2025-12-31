@@ -125,7 +125,7 @@ export class StartGGClient {
   async getEventSets(
     eventId: number,
     page = 1,
-    perPage = 50
+    perPage = 25
   ): Promise<EventSetsResponse> {
     const query = `
       query GetEventSets($eventId: ID!, $page: Int!, $perPage: Int!) {
@@ -158,10 +158,6 @@ export class StartGGClient {
                   participants {
                     id
                     gamerTag
-                    user {
-                      id
-                      name
-                    }
                   }
                 }
               }

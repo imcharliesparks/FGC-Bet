@@ -1,4 +1,12 @@
-import { PrismaClient } from '@prisma/client';
+import {
+  PrismaClient,
+  TransactionType,
+  BetType,
+  BetSelection,
+  BetStatus,
+  MatchStatus,
+  FightingGame,
+} from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -12,4 +20,14 @@ export const prisma =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-export * from '@prisma/client';
+// Explicit re-exports to avoid export * on CJS module in bundlers
+export {
+  PrismaClient,
+  TransactionType,
+  BetType,
+  BetSelection,
+  BetStatus,
+  MatchStatus,
+  FightingGame,
+};
+export type { Prisma, Transaction, Match, Tournament, Player, OddsSnapshot, Bet, User } from '@prisma/client';
