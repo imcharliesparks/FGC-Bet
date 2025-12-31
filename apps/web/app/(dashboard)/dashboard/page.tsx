@@ -57,57 +57,57 @@ export default async function DashboardPage() {
   })
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 text-zinc-50">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">
+        <h1 className="text-3xl font-bold text-white">
           Welcome back, {user.firstName || user.username}!
         </h1>
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-zinc-400">
           Here's what's happening with your betting activity
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-slate-600">Chip Balance</div>
-          <div className="mt-2 text-3xl font-bold text-slate-900">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-6 shadow-lg shadow-black/20">
+          <div className="text-sm font-medium text-zinc-400">Chip Balance</div>
+          <div className="mt-2 text-3xl font-bold text-amber-200">
             {formatChips(Number(user.chipBalance))}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-slate-600">Active Bets</div>
-          <div className="mt-2 text-3xl font-bold text-blue-600">
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-6 shadow-lg shadow-black/20">
+          <div className="text-sm font-medium text-zinc-400">Active Bets</div>
+          <div className="mt-2 text-3xl font-bold text-blue-300">
             {activeBets.length}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-slate-600">Total Bets</div>
-          <div className="mt-2 text-3xl font-bold text-slate-900">
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-6 shadow-lg shadow-black/20">
+          <div className="text-sm font-medium text-zinc-400">Total Bets</div>
+          <div className="mt-2 text-3xl font-bold text-zinc-50">
             {totalBets}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-slate-600">Win Rate</div>
-          <div className="mt-2 text-3xl font-bold text-green-600">
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-6 shadow-lg shadow-black/20">
+          <div className="text-sm font-medium text-zinc-400">Win Rate</div>
+          <div className="mt-2 text-3xl font-bold text-green-300">
             {winRate}%
           </div>
         </div>
       </div>
 
       {/* Active Bets */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-slate-200">
-          <h2 className="text-xl font-semibold text-slate-900">Active Bets</h2>
+      <div className="rounded-lg border border-zinc-800 bg-zinc-900/80 shadow-xl shadow-black/20">
+        <div className="border-b border-zinc-800 px-6 py-4">
+          <h2 className="text-xl font-semibold text-white">Active Bets</h2>
         </div>
         <div className="p-6">
           {activeBets.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-600">No active bets</p>
+            <div className="py-12 text-center">
+              <p className="text-zinc-400">No active bets</p>
               <Link
                 href="/matches"
-                className="mt-4 inline-block text-blue-600 hover:text-blue-700 font-medium"
+                className="mt-4 inline-block text-sm font-medium text-indigo-300 hover:text-indigo-200"
               >
                 Browse matches →
               </Link>
@@ -115,24 +115,39 @@ export default async function DashboardPage() {
           ) : (
             <div className="space-y-4">
               {activeBets.map((bet) => (
-                <div key={bet.id} className="border border-slate-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start">
+                <div
+                  key={bet.id}
+                  className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4"
+                >
+                  <div className="flex items-start justify-between">
                     <div>
-                      <div className="font-medium text-slate-900">
+                      <div className="font-medium text-white">
                         {bet.match.player1.gamerTag} vs {bet.match.player2.gamerTag}
                       </div>
-                      <div className="text-sm text-slate-600 mt-1">
+                      <div className="mt-1 text-sm text-zinc-400">
                         {bet.match.tournament.name} • {bet.selection}
+                      </div>
+                      <div className="mt-1 text-xs text-zinc-500">
+                        Placed {formatRelativeTime(bet.placedAt)}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium text-slate-900">
+                      <div className="font-medium text-zinc-50">
                         {formatChips(Number(bet.amount))} chips
                       </div>
-                      <div className="text-sm text-green-600">
-                        Win: {formatChips(Number(bet.potentialPayout))}
+                      <div className="text-sm text-zinc-400">
+                        Odds: {Number(bet.odds) > 0 ? '+' : ''}
+                        {Number(bet.odds)}
+                      </div>
+                      <div className="mt-1 text-sm text-green-300">
+                        To win: {formatChips(Number(bet.potentialPayout))}
                       </div>
                     </div>
+                  </div>
+                  <div className="mt-3 border-t border-zinc-800 pt-3">
+                    <span className="rounded-full bg-blue-500/20 px-2 py-1 text-xs text-blue-100">
+                      {bet.match.status}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -142,14 +157,14 @@ export default async function DashboardPage() {
       </div>
 
       {/* Upcoming Matches */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-slate-200">
-          <h2 className="text-xl font-semibold text-slate-900">Upcoming Matches</h2>
+      <div className="rounded-lg border border-zinc-800 bg-zinc-900/80 shadow-xl shadow-black/20">
+        <div className="border-b border-zinc-800 px-6 py-4">
+          <h2 className="text-xl font-semibold text-white">Upcoming Matches</h2>
         </div>
         <div className="p-6">
           {upcomingMatches.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-600">No upcoming matches available for betting</p>
+            <div className="py-12 text-center text-zinc-400">
+              No upcoming matches available for betting
             </div>
           ) : (
             <div className="space-y-4">
@@ -157,22 +172,22 @@ export default async function DashboardPage() {
                 <Link
                   key={match.id}
                   href={`/matches/${match.id}`}
-                  className="block border border-slate-200 rounded-lg p-4 hover:border-blue-500 transition-colors"
+                  className="block rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 transition hover:border-indigo-300/60"
                 >
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-slate-900">
+                      <div className="font-medium text-white">
                         {match.player1.gamerTag} vs {match.player2.gamerTag}
                       </div>
-                      <div className="text-sm text-slate-600 mt-1">
+                      <div className="mt-1 text-sm text-zinc-400">
                         {match.tournament.name}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium text-blue-600">
+                      <div className="text-sm font-medium text-indigo-200">
                         {formatRelativeTime(match.scheduledStart)}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-zinc-500">
                         Best of {match.bestOf}
                       </div>
                     </div>

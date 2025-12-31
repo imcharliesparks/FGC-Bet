@@ -19,110 +19,110 @@ export default async function AdminMatchesPage() {
   })
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 text-zinc-50">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Match Management</h1>
-          <p className="mt-2 text-slate-600">
+          <h1 className="text-3xl font-bold text-white">Match Management</h1>
+          <p className="mt-2 text-zinc-400">
             Create and manage betting matches
           </p>
         </div>
         <Link
           href="/admin/matches/new"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
+          className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500"
         >
           Create Match
         </Link>
       </div>
 
       {/* Matches Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-slate-50">
+      <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/80 shadow-xl shadow-black/20">
+        <table className="min-w-full divide-y divide-zinc-800">
+          <thead className="bg-zinc-900/80">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Match
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Tournament
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Game
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Time
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Bets
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-slate-200">
+          <tbody className="divide-y divide-zinc-800 bg-zinc-950/40">
             {matches.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
                   No matches found. Create your first match to get started.
                 </td>
               </tr>
             ) : (
               matches.map((match) => (
-                <tr key={match.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-slate-900">
+                <tr key={match.id} className="hover:bg-zinc-900/60">
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <div className="text-sm font-medium text-white">
                       {match.player1.gamerTag} vs {match.player2.gamerTag}
                     </div>
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-zinc-500">
                       {match.round} • Best of {match.bestOf}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <div className="text-sm text-zinc-200">
                       {match.tournament.name}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <div className="text-sm text-zinc-200">
                       {formatGameName(match.game)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <div className="text-sm text-zinc-200">
                       {formatRelativeTime(match.scheduledStart)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="whitespace-nowrap px-6 py-4">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                         match.status === 'LIVE'
-                          ? 'bg-red-100 text-red-800'
+                          ? 'bg-red-500/20 text-red-200'
                           : match.status === 'COMPLETED'
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-green-500/20 text-green-200'
                           : match.status === 'CANCELLED'
-                          ? 'bg-gray-100 text-gray-800'
-                          : 'bg-blue-100 text-blue-800'
+                          ? 'bg-zinc-500/20 text-zinc-200'
+                          : 'bg-blue-500/20 text-blue-200'
                       }`}
                     >
                       {match.status}
                     </span>
                     {match.bettingOpen && (
-                      <span className="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      <span className="ml-2 inline-flex rounded-full bg-emerald-500/20 px-2 text-xs font-semibold leading-5 text-emerald-100">
                         Betting Open
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-200">
                     {match._count.bets}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                     <Link
                       href={`/admin/matches/${match.id}`}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      className="text-indigo-300 hover:text-indigo-200"
                     >
                       Edit
                     </Link>
