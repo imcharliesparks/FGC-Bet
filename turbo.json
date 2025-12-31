@@ -1,17 +1,5 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
-    "build": {
-      "env": [
-        "DATABASE_URL",
-        "DIRECT_DATABASE_URL",
-        "CLERK_SECRET_KEY",
-        "STARTGG_API_KEY",
-        "REDIS_ENABLED",
-        "NODE_ENV"
-      ]
-    }
-  },
   "globalDependencies": [
     "**/.env.*local"
   ],
@@ -23,6 +11,14 @@
       "outputs": [
         ".next/**",
         "!.next/cache/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "DIRECT_DATABASE_URL",
+        "CLERK_SECRET_KEY",
+        "STARTGG_API_KEY",
+        "REDIS_ENABLED",
+        "NODE_ENV"
       ]
     },
     "dev": {
