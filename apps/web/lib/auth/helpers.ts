@@ -25,11 +25,32 @@ export async function getCurrentUser() {
 export async function requireAuth() {
   const user = await getCurrentUser()
 
-  if (!user) {
+  if (user) {
+    return user
+  }
+
+  // If Clerk session exists but DB user is missing (webhook not configured yet), create it on the fly
+  const clerkUser = await currentUser()
+  if (!clerkUser) {
     throw new Error('Unauthorized - Please sign in')
   }
 
-  return user
+  const created = await prisma.user.create({
+    data: {
+      clerkId: clerkUser.id,
+      email: clerkUser.emailAddresses[0]?.emailAddress || '',
+      username:
+        clerkUser.username ||
+        clerkUser.emailAddresses[0]?.emailAddress?.split('@')[0] ||
+        `user_${clerkUser.id.slice(0, 6)}`,
+      firstName: clerkUser.firstName,
+      lastName: clerkUser.lastName,
+      imageUrl: clerkUser.imageUrl,
+      chipBalance: 10000,
+    },
+  })
+
+  return created
 }
 
 /**

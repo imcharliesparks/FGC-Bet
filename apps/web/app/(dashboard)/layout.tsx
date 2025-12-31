@@ -12,37 +12,37 @@ export default async function DashboardLayout({
   const user = await getCurrentUser()
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-zinc-950 text-zinc-50">
       {/* Navigation */}
-      <nav className="bg-white border-b border-slate-200">
+      <nav className="bg-zinc-900/80 border-b border-zinc-800 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/dashboard" className="text-2xl font-bold text-slate-900">
+              <Link href="/dashboard" className="text-2xl font-bold text-white">
                 FGC Bet
               </Link>
               <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-slate-700 hover:text-slate-900"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/matches"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-slate-700 hover:text-slate-900"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
                 >
                   Matches
                 </Link>
                 <Link
                   href="/bets"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-slate-700 hover:text-slate-900"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
                 >
                   My Bets
                 </Link>
                 <Link
                   href="/wallet"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-slate-700 hover:text-slate-900"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
                 >
                   Wallet
                 </Link>
@@ -51,11 +51,11 @@ export default async function DashboardLayout({
             <div className="flex items-center space-x-4">
               {/* Chip Balance */}
               {user && (
-                <div className="flex items-center space-x-2 bg-amber-100 px-4 py-2 rounded-lg">
-                  <span className="text-2xl">🪙</span>
+                <div className="flex items-center space-x-2 rounded-lg border border-amber-300/40 bg-amber-900/30 px-4 py-2">
+                  <span className="text-2xl">💰</span>
                   <div className="text-right">
-                    <div className="text-xs text-amber-800 font-medium">Balance</div>
-                    <div className="text-sm font-bold text-amber-900">
+                    <div className="text-xs text-amber-200 font-medium">Balance</div>
+                    <div className="text-sm font-bold text-amber-100">
                       {formatChips(Number(user.chipBalance))}
                     </div>
                   </div>
@@ -67,29 +67,29 @@ export default async function DashboardLayout({
         </div>
 
         {/* Mobile Navigation */}
-        <div className="sm:hidden border-t border-slate-200">
+        <div className="sm:hidden border-t border-zinc-800 bg-zinc-900/80 backdrop-blur">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
               href="/dashboard"
-              className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+              className="block px-3 py-2 rounded-md text-base font-medium text-zinc-200 hover:text-white hover:bg-zinc-800/80"
             >
               Dashboard
             </Link>
             <Link
               href="/matches"
-              className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+              className="block px-3 py-2 rounded-md text-base font-medium text-zinc-200 hover:text-white hover:bg-zinc-800/80"
             >
               Matches
             </Link>
             <Link
               href="/bets"
-              className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+              className="block px-3 py-2 rounded-md text-base font-medium text-zinc-200 hover:text-white hover:bg-zinc-800/80"
             >
               My Bets
             </Link>
             <Link
               href="/wallet"
-              className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+              className="block px-3 py-2 rounded-md text-base font-medium text-zinc-200 hover:text-white hover:bg-zinc-800/80"
             >
               Wallet
             </Link>
