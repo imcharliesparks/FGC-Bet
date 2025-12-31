@@ -142,10 +142,10 @@ export default async function WalletPage() {
                 <div className="text-right">
                   <div
                     className={`text-sm font-semibold ${
-                      tx.amount > 0 ? 'text-emerald-300' : 'text-red-300'
+                      Number(tx.amount) > 0 ? 'text-emerald-300' : 'text-red-300'
                     }`}
                   >
-                    {tx.amount > 0 ? '+' : '-'}
+                    {Number(tx.amount) > 0 ? '+' : '-'}
                     {formatChips(Math.abs(Number(tx.amount)))} chips
                   </div>
                   <div className="text-xs text-zinc-500">
