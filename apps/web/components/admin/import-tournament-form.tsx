@@ -28,19 +28,25 @@ export function ImportTournamentForm() {
         }),
       })
 
-      const data = await response.json()
+      const data = (await response.json()) as {
+        error?: string
+        tournament?: { name: string }
+        matchesImported?: number
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Import failed')
       }
 
       toast.success(
-        `Successfully imported "${data.tournament.name}" with ${data.matchesImported} matches!`
+        `Successfully imported "${data.tournament?.name}" with ${data.matchesImported} matches!`
       )
       setSlug('')
 
       // Refresh the page to show new tournament
-      window.location.reload()
+      if (typeof window !== 'undefined') {
+        window.location.reload()
+      }
     } catch (error) {
       console.error('Import error:', error)
       toast.error(error instanceof Error ? error.message : 'Failed to import tournament')
@@ -60,7 +66,7 @@ export function ImportTournamentForm() {
             type="text"
             id="slug"
             value={slug}
-            onChange={(e) => setSlug(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSlug(e.target.value)}
             placeholder="tournament/event-name/event/event-slug"
             className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isLoading}

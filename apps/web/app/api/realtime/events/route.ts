@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const writer = stream.writable.getWriter()
 
   // Send initial connection message
-  const sendEvent = async (event: any) => {
+  const sendEvent = async (event: unknown) => {
     const data = `data: ${JSON.stringify(event)}\n\n`
     await writer.write(encoder.encode(data))
   }
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
   }, 30000) // Every 30 seconds
 
   // Subscribe to events
-  const unsubscribe = await eventBus.subscribe(channel, async (event) => {
+  const unsubscribe = await eventBus.subscribe(channel, async (event: unknown) => {
     try {
       await sendEvent(event)
     } catch (error) {

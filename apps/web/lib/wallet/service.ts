@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
-import { TransactionType } from '@repo/database'
+import { TransactionType, type Prisma } from '@repo/database'
 import { Decimal } from '@prisma/client/runtime/library'
 
 export class WalletService {
@@ -25,7 +25,7 @@ export class WalletService {
     description?: string,
     relatedBetId?: string
   ) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Get current balance
       const user = await tx.user.findUnique({
         where: { id: userId },
@@ -72,7 +72,7 @@ export class WalletService {
     description?: string,
     relatedBetId?: string
   ) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Get current balance
       const user = await tx.user.findUnique({
         where: { id: userId },

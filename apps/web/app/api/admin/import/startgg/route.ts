@@ -6,7 +6,9 @@ export async function POST(request: Request) {
   try {
     await requireAdmin()
 
-    const { tournamentSlug } = await request.json()
+    const { tournamentSlug } = (await request.json()) as {
+      tournamentSlug?: string
+    }
 
     if (!tournamentSlug) {
       return NextResponse.json(

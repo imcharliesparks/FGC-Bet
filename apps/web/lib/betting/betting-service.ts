@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import { WalletService } from '@/lib/wallet/service'
 import { OddsService } from './odds-service'
 import { OddsCalculator } from './odds-calculator'
-import { BetType, BetSelection, BetStatus } from '@repo/database'
+import { BetType, BetSelection, BetStatus, type Prisma } from '@repo/database'
 import { Decimal } from '@prisma/client/runtime/library'
 import { getEventBus } from '@/lib/realtime/event-bus'
 
@@ -38,7 +38,7 @@ export class BettingService {
     }
 
     // Use Prisma transaction for atomicity
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Get match and verify it's open for betting
       const match = await tx.match.findUnique({
         where: { id: matchId },
@@ -213,7 +213,7 @@ export class BettingService {
    * Cancel a bet (only if match hasn't started)
    */
   async cancelBet(betId: string, userId: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const bet = await tx.bet.findUnique({
         where: { id: betId },
         include: { match: true },
@@ -269,10 +269,13 @@ export class BettingService {
       where: { userId },
     })
 
-    const totalWagered = allBets.reduce((sum, bet) => sum + Number(bet.amount), 0)
+    const totalWagered = allBets.reduce<number>(
+      (sum, bet) => sum + Number(bet.amount),
+      0
+    )
     const totalWon = allBets
       .filter((bet) => bet.status === 'WON')
-      .reduce((sum, bet) => sum + Number(bet.actualPayout || 0), 0)
+      .reduce<number>((sum, bet) => sum + Number(bet.actualPayout || 0), 0)
 
     const netProfit = totalWon - totalWagered
     const winRate = totalBets > 0 ? (wonBets / totalBets) * 100 : 0

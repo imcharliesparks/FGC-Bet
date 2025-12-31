@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const transactions = await WalletService.getTransactions(user.id, limit)
 
     // Convert Decimal types to numbers for JSON serialization
-    const serializedTransactions = transactions.map(t => ({
+    const serializedTransactions = transactions.map((t) => ({
       ...t,
       amount: Number(t.amount),
       balanceBefore: Number(t.balanceBefore),

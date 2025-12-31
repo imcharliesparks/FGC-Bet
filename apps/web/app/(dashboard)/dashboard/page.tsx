@@ -2,12 +2,33 @@ import { requireAuth } from '@/lib/auth/helpers'
 import { prisma } from '@/lib/db/prisma'
 import { formatChips, formatRelativeTime } from '@/lib/utils/format'
 import Link from 'next/link'
+import type { Prisma } from '@repo/database'
+
+type DashboardBet = Prisma.BetGetPayload<{
+  include: {
+    match: {
+      include: {
+        player1: true
+        player2: true
+        tournament: true
+      }
+    }
+  }
+}>
+
+type UpcomingMatch = Prisma.MatchGetPayload<{
+  include: {
+    player1: true
+    player2: true
+    tournament: true
+  }
+}>
 
 export default async function DashboardPage() {
   const user = await requireAuth()
 
   // Get user's active bets
-  const activeBets = await prisma.bet.findMany({
+  const activeBets: DashboardBet[] = await prisma.bet.findMany({
     where: {
       userId: user.id,
       status: 'PENDING',
@@ -37,7 +58,7 @@ export default async function DashboardPage() {
   const winRate = totalBets > 0 ? ((wonBets / totalBets) * 100).toFixed(1) : '0.0'
 
   // Get upcoming matches with betting open
-  const upcomingMatches = await prisma.match.findMany({
+  const upcomingMatches: UpcomingMatch[] = await prisma.match.findMany({
     where: {
       status: 'SCHEDULED',
       bettingOpen: true,
@@ -114,7 +135,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {activeBets.map((bet) => (
+              {activeBets.map((bet: DashboardBet) => (
                 <div
                   key={bet.id}
                   className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4"

@@ -1,7 +1,7 @@
 import { requireAuth } from '@/lib/auth/helpers'
 import { WalletService } from '@/lib/wallet/service'
 import { formatChips, formatRelativeTime } from '@/lib/utils/format'
-import { TransactionType } from '@repo/database'
+import { TransactionType, type Transaction } from '@repo/database'
 import { revalidatePath } from 'next/cache'
 
 async function addCredits(formData: FormData) {
@@ -27,7 +27,7 @@ async function addCredits(formData: FormData) {
 
 export default async function WalletPage() {
   const user = await requireAuth()
-  const [balance, transactions] = await Promise.all([
+  const [balance, transactions]: [number, Transaction[]] = await Promise.all([
     WalletService.getBalance(user.id),
     WalletService.getTransactions(user.id, 20),
   ])

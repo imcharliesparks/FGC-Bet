@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import { WalletService } from '@/lib/wallet/service'
 import { Decimal } from '@prisma/client/runtime/library'
 import { getEventBus } from '@/lib/realtime/event-bus'
+import type { Prisma } from '@repo/database'
 
 export class SettlementService {
   private walletService: typeof WalletService
@@ -85,7 +86,7 @@ export class SettlementService {
    * Settle an individual bet
    */
   private async settleBet(betId: string, winnerId: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const bet = await tx.bet.findUnique({
         where: { id: betId },
         include: {
@@ -181,7 +182,7 @@ export class SettlementService {
 
     for (const bet of pendingBets) {
       try {
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
           // Refund chips
           await this.walletService.addChips(
             bet.userId,

@@ -1,9 +1,21 @@
 import { prisma } from '@/lib/db/prisma'
 import { formatRelativeTime, formatGameName } from '@/lib/utils/format'
 import Link from 'next/link'
+import type { Prisma } from '@repo/database'
+
+type AdminMatch = Prisma.MatchGetPayload<{
+  include: {
+    player1: true
+    player2: true
+    tournament: true
+    _count: {
+      select: { bets: true }
+    }
+  }
+}>
 
 export default async function AdminMatchesPage() {
-  const matches = await prisma.match.findMany({
+  const matches: AdminMatch[] = await prisma.match.findMany({
     include: {
       player1: true,
       player2: true,

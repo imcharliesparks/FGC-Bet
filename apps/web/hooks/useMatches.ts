@@ -36,7 +36,7 @@ export function useMatches() {
       if (!response.ok) {
         throw new Error('Failed to fetch matches')
       }
-      return response.json()
+      return (await response.json()) as Match[]
     },
     staleTime: 30 * 1000, // 30 seconds - relatively fresh for betting
     refetchInterval: 60 * 1000, // Refetch every minute
@@ -53,7 +53,7 @@ export function useMatch(matchId: string) {
       if (!response.ok) {
         throw new Error('Failed to fetch match')
       }
-      return response.json()
+      return (await response.json()) as Match
     },
     enabled: !!matchId,
     staleTime: 10 * 1000, // 10 seconds
@@ -111,7 +111,7 @@ export function useUserBets(status?: 'PENDING' | 'WON' | 'LOST') {
       if (!response.ok) {
         throw new Error('Failed to fetch bets')
       }
-      return response.json()
+      return (await response.json()) as unknown
     },
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000,

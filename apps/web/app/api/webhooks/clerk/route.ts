@@ -1,6 +1,6 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
-import { WebhookEvent } from '@clerk/nextjs/server'
+import type { WebhookEvent } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/db/prisma'
 
 export async function POST(req: Request) {
@@ -41,14 +41,15 @@ export async function POST(req: Request) {
   // Handle user.created event
   if (eventType === 'user.created') {
     const { id, email_addresses, first_name, last_name, username, image_url } = evt.data
+    const primaryEmail = email_addresses?.[0]?.email_address
 
     try {
       // Create user with starting chip balance
       await prisma.user.create({
         data: {
           clerkId: id,
-          email: email_addresses[0].email_address,
-          username: username || email_addresses[0].email_address.split('@')[0],
+          email: primaryEmail || '',
+          username: username || primaryEmail?.split('@')[0] || id,
           firstName: first_name || null,
           lastName: last_name || null,
           imageUrl: image_url || null,
@@ -66,13 +67,14 @@ export async function POST(req: Request) {
   // Handle user.updated event
   if (eventType === 'user.updated') {
     const { id, email_addresses, first_name, last_name, username, image_url } = evt.data
+    const primaryEmail = email_addresses?.[0]?.email_address
 
     try {
       await prisma.user.update({
         where: { clerkId: id },
         data: {
-          email: email_addresses[0].email_address,
-          username: username || undefined,
+          email: primaryEmail || '',
+          username: username || primaryEmail?.split('@')[0] || undefined,
           firstName: first_name || null,
           lastName: last_name || null,
           imageUrl: image_url || null,
