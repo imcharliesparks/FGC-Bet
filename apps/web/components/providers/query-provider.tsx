@@ -1,8 +1,11 @@
 'use client'
 
+import { useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { useState, type ReactNode } from 'react'
+import { httpBatchLink, loggerLink } from '@trpc/client'
+import superjson from 'superjson'
+import { api } from '@/lib/trpc/react'
 
 export function QueryProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -29,12 +32,28 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       })
   )
 
+  const [trpcClient] = useState(() =>
+    api.createClient({
+      links: [
+        loggerLink({
+          enabled: () => process.env.NODE_ENV === 'development',
+        }),
+        httpBatchLink({
+          url: '/api/trpc',
+          transformer: superjson,
+        }),
+      ],
+    })
+  )
+
   return (
-    <QueryClientProvider client={queryClient}>
-      {children as any}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
-    </QueryClientProvider>
+    <api.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        {children as any}
+        {process.env.NODE_ENV === 'development' && (
+          <ReactQueryDevtools initialIsOpen={false} />
+        )}
+      </QueryClientProvider>
+    </api.Provider>
   )
 }
