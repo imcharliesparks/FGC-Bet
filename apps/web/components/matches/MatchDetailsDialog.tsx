@@ -19,6 +19,7 @@ type Player = {
 }
 
 type Tournament = {
+  id?: string
   name: string
   slug?: string | null
   location?: string | null
@@ -49,7 +50,7 @@ type MatchDetails = {
 
 interface MatchDetailsDialogProps {
   match: MatchDetails
-  trigger: React.ReactNode
+  trigger: JSX.Element
 }
 
 export function MatchDetailsDialog({ match, trigger }: MatchDetailsDialogProps) {
@@ -105,8 +106,8 @@ export function MatchDetailsDialog({ match, trigger }: MatchDetailsDialogProps) 
                 >
                   {match.tournament.name}
                 </Link>
-                {match.round ? ` • ${match.round}` : ''}
-                {match.bestOf ? ` • Best of ${match.bestOf}` : ''}
+                {match.round ? ` | ${match.round}` : ''}
+                {match.bestOf ? ` | Best of ${match.bestOf}` : ''}
               </div>
             </div>
             <div

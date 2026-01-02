@@ -29,7 +29,7 @@ export default async function AdminStatsPage() {
 
   const matchesByGame = await prisma.match.groupBy({
     by: ['game'],
-    _count: { game: true },
+    _count: { _all: true },
     orderBy: { _count: { game: 'desc' } },
     take: 6,
   })
@@ -75,7 +75,7 @@ export default async function AdminStatsPage() {
                         {t.name}
                       </a>
                       <div className="text-xs text-zinc-500">
-                        {formatGameName(t.game)} • {new Date(t.startDate).toLocaleDateString()}
+                        {formatGameName(t.game)} | {new Date(t.startDate).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="text-xs text-zinc-400">
