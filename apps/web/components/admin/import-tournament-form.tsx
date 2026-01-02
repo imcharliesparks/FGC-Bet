@@ -2,10 +2,13 @@
 
 import { useState } from 'react'
 import { toast } from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
+import { api } from '@/lib/trpc/react'
 
 export function ImportTournamentForm() {
   const [slug, setSlug] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const importTournament = api.admin.importTournament.useMutation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -15,43 +18,20 @@ export function ImportTournamentForm() {
       return
     }
 
-    setIsLoading(true)
-
     try {
-      const response = await fetch('/api/admin/import/startgg', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tournamentSlug: slug.trim(),
-        }),
+      const data = await importTournament.mutateAsync({
+        tournamentSlug: slug.trim(),
       })
-
-      const data = (await response.json()) as {
-        error?: string
-        tournament?: { name: string }
-        matchesImported?: number
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Import failed')
-      }
 
       toast.success(
         `Successfully imported "${data.tournament?.name}" with ${data.matchesImported} matches!`
       )
       setSlug('')
 
-      // Refresh the page to show new tournament
-      if (typeof window !== 'undefined') {
-        window.location.reload()
-      }
+      router.refresh()
     } catch (error) {
       console.error('Import error:', error)
       toast.error(error instanceof Error ? error.message : 'Failed to import tournament')
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -69,14 +49,14 @@ export function ImportTournamentForm() {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSlug(e.target.value)}
             placeholder="tournament/event-name/event/event-slug"
             className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={isLoading}
+            disabled={importTournament.isPending}
           />
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={importTournament.isPending}
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Importing...' : 'Import'}
+            {importTournament.isPending ? 'Importing...' : 'Import'}
           </button>
         </div>
         <p className="mt-2 text-sm text-slate-500">
