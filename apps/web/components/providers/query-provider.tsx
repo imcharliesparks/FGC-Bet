@@ -34,13 +34,13 @@ export function QueryProvider({ children }: { children: ReactNode }) {
 
   const [trpcClient] = useState(() =>
     api.createClient({
-      transformer: superjson,
       links: [
         loggerLink({
           enabled: () => process.env.NODE_ENV === 'development',
         }),
         httpBatchLink({
           url: '/api/trpc',
+          transformer: superjson,
         }),
       ],
     })
