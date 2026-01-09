@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/dialog'
 import Link from 'next/link'
 import { formatGameName, formatRelativeTime } from '@/lib/utils/format'
+import { useBettingInterface } from '@/hooks/useBettingInterface'
+import { MobileBetSlip } from '@/components/betting/MobileBetSlip'
 
 type Player = {
   gamerTag: string
@@ -54,6 +56,20 @@ interface MatchDetailsDialogProps {
 }
 
 export function MatchDetailsDialog({ match, trigger }: MatchDetailsDialogProps) {
+  const {
+    betSlipOpen,
+    selectedPlayer,
+    selectedPlayerName,
+    selectedPlayerOdds,
+    userBalance,
+    odds,
+    oddsLoading,
+    openBetSlip,
+    handlePlaceBet,
+    closeBetSlip,
+    canBet,
+  } = useBettingInterface(match.id)
+
   const statusBadge = (() => {
     switch (match.status) {
       case 'LIVE':
@@ -120,6 +136,43 @@ export function MatchDetailsDialog({ match, trigger }: MatchDetailsDialogProps) 
             Detailed match context pulled from start.gg import
           </DialogDescription>
         </DialogHeader>
+
+        {/* Betting Section */}
+        {canBet && odds && (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
+            <div className="text-xs font-semibold uppercase text-slate-500 mb-3">
+              Place Your Bet
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openBetSlip('PLAYER_1')
+                }}
+                className="bg-white border-2 border-blue-200 hover:border-blue-400 rounded-lg p-3 transition-colors"
+              >
+                <div className="text-sm font-medium">{match.player1.gamerTag}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {odds.player1Odds > 0 ? '+' : ''}
+                  {odds.player1Odds}
+                </div>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openBetSlip('PLAYER_2')
+                }}
+                className="bg-white border-2 border-blue-200 hover:border-blue-400 rounded-lg p-3 transition-colors"
+              >
+                <div className="text-sm font-medium">{match.player2.gamerTag}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {odds.player2Odds > 0 ? '+' : ''}
+                  {odds.player2Odds}
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -267,6 +320,19 @@ export function MatchDetailsDialog({ match, trigger }: MatchDetailsDialogProps) 
           </div>
         )}
       </DialogContent>
+
+      {/* MobileBetSlip */}
+      {betSlipOpen && selectedPlayer && selectedPlayerOdds && (
+        <MobileBetSlip
+          matchId={match.id}
+          selection={selectedPlayer}
+          playerName={selectedPlayerName || ''}
+          odds={selectedPlayerOdds}
+          userBalance={userBalance}
+          onPlaceBet={handlePlaceBet}
+          onClose={closeBetSlip}
+        />
+      )}
     </Dialog>
   )
 }
