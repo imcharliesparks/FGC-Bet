@@ -1,5 +1,7 @@
 'use client'
 
+import { useMemo } from 'react'
+
 import { format } from 'date-fns'
 import { useBettingInterface } from '@/hooks/useBettingInterface'
 import { MobileBetSlip } from '@/components/betting/MobileBetSlip'
@@ -24,7 +26,14 @@ export function MatchDetailClient({ initialMatch }: { initialMatch: any }) {
   const { matchUpdate, oddsUpdate } = useMatchUpdates(initialMatch.id)
 
   // Use real-time updates if available, otherwise use initial data
-  const displayMatch = matchUpdate || match || initialMatch
+  // Merge the real-time update into the existing match data so we don't lose fields like players/tournament
+  const displayMatch = useMemo(() => {
+    return {
+      ...initialMatch,
+      ...(match || {}),
+      ...(matchUpdate || {}),
+    }
+  }, [initialMatch, match, matchUpdate])
 
   return (
     <div className="max-w-4xl mx-auto p-6">
