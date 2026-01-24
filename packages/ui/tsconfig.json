@@ -16,7 +16,7 @@
     "noEmit": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "declaration": true
+    "declaration": true,
 
     // Best practices
     "strict": true,
