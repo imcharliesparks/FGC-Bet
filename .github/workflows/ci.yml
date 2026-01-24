@@ -9,7 +9,7 @@ on:
 
 jobs:
   ci:
-    name: Lint, & Type Check
+    name: Lint & Type Check
     runs-on: ubuntu-latest
 
     steps:
