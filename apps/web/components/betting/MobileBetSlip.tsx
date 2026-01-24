@@ -73,10 +73,14 @@ export function MobileBetSlip({
         onClick={onClose}
       />
 
-      {/* Bottom Sheet */}
-      <div className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl z-50 p-6 animate-slide-up max-h-[85vh] overflow-y-auto">
-        {/* Handle Bar */}
-        <div className="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-4" />
+      {/* Bottom Sheet / Modal */}
+      <div className="fixed inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center bg-white md:bg-transparent z-50 animate-slide-up md:animate-fade-in">
+        <div
+          className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl p-6 w-full md:w-[90%] lg:w-[60%] xl:w-[50%] max-h-[85vh] md:max-h-[90vh] overflow-y-auto md:animate-scale-in"
+          onClick={(e) => e.stopPropagation()}
+        >
+        {/* Handle Bar - Mobile Only */}
+        <div className="w-12 h-1 bg-slate-300 rounded-full mx-auto mb-4 md:hidden" />
 
         {/* Close Button */}
         <button
@@ -190,6 +194,7 @@ export function MobileBetSlip({
         <p className="text-xs text-slate-500 text-center mt-3">
           Odds are locked at the time of bet placement
         </p>
+        </div>
       </div>
 
       <style jsx>{`
@@ -211,12 +216,27 @@ export function MobileBetSlip({
           }
         }
 
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
         .animate-fade-in {
           animation: fade-in 0.2s ease-out;
         }
 
         .animate-slide-up {
           animation: slide-up 0.3s ease-out;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
         }
 
         .touch-manipulation {

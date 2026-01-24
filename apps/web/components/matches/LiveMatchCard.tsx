@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { useMatchUpdates } from '@/hooks/useMatchUpdates'
 import { formatGameName, formatRelativeTime } from '@/lib/utils/format'
 import { MatchDetailsDialog } from './MatchDetailsDialog'
+import { useMatchOdds } from '@/hooks/useMatchOdds'
+import { api } from '@/lib/trpc/react'
+import { MobileBetSlip } from '@/components/betting/MobileBetSlip'
 
 interface LiveMatchCardProps {
   match: any
@@ -12,6 +15,43 @@ interface LiveMatchCardProps {
 export function LiveMatchCard({ match: initialMatch }: LiveMatchCardProps) {
   const [match, setMatch] = useState(initialMatch)
   const { isConnected, matchUpdate, oddsUpdate } = useMatchUpdates(match.id)
+
+  const [betSlipOpen, setBetSlipOpen] = useState(false)
+  const [selectedPlayer, setSelectedPlayer] = useState<
+    'PLAYER_1' | 'PLAYER_2' | null
+  >(null)
+
+  const { odds, isLoading: oddsLoading } = useMatchOdds(match.id)
+  const { data: wallet } = api.wallet.balance.useQuery()
+  const utils = api.useUtils()
+  const placeBet = api.bets.place.useMutation({
+    onSuccess: () => {
+      utils.matches.invalidate()
+      utils.wallet.invalidate()
+      setBetSlipOpen(false)
+    },
+  })
+
+  const openBetSlip = (
+    player: 'PLAYER_1' | 'PLAYER_2',
+    e: React.MouseEvent
+  ) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!match.bettingOpen) return
+    setSelectedPlayer(player)
+    setBetSlipOpen(true)
+  }
+
+  const handlePlaceBet = async (amount: number) => {
+    if (!selectedPlayer) return
+    await placeBet.mutateAsync({
+      matchId: match.id,
+      betType: 'MONEYLINE',
+      selection: selectedPlayer,
+      amount,
+    })
+  }
 
   // Update match data when real-time updates arrive
   useEffect(() => {
@@ -34,9 +74,10 @@ export function LiveMatchCard({ match: initialMatch }: LiveMatchCardProps) {
   }
 
   return (
-    <MatchDetailsDialog
-      match={match}
-      trigger={
+    <>
+      <MatchDetailsDialog
+        match={match}
+        trigger={
         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
           {/* Connection Status */}
           <div className="flex items-center justify-between mb-4">
@@ -98,6 +139,41 @@ export function LiveMatchCard({ match: initialMatch }: LiveMatchCardProps) {
             </div>
           </div>
 
+          {/* Betting Odds Section */}
+          {match.bettingOpen && !oddsLoading && odds && (
+            <div className="mb-4">
+              <div className="text-xs font-semibold uppercase text-slate-500 mb-2">
+                Betting Odds
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={(e) => openBetSlip('PLAYER_1', e)}
+                  className="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-2 transition-colors"
+                >
+                  <div className="text-xs text-slate-600">
+                    {match.player1.gamerTag}
+                  </div>
+                  <div className="text-lg font-bold text-blue-600">
+                    {odds.player1Odds > 0 ? '+' : ''}
+                    {odds.player1Odds}
+                  </div>
+                </button>
+                <button
+                  onClick={(e) => openBetSlip('PLAYER_2', e)}
+                  className="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-2 transition-colors"
+                >
+                  <div className="text-xs text-slate-600">
+                    {match.player2.gamerTag}
+                  </div>
+                  <div className="text-lg font-bold text-blue-600">
+                    {odds.player2Odds > 0 ? '+' : ''}
+                    {odds.player2Odds}
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Betting Status */}
           {match.bettingOpen ? (
             <div className="bg-green-50 border border-green-200 rounded-md p-3">
@@ -126,5 +202,25 @@ export function LiveMatchCard({ match: initialMatch }: LiveMatchCardProps) {
         </div>
       }
     />
+
+    {/* MobileBetSlip */}
+    {betSlipOpen && selectedPlayer && odds && (
+      <MobileBetSlip
+        matchId={match.id}
+        selection={selectedPlayer}
+        playerName={
+          selectedPlayer === 'PLAYER_1'
+            ? match.player1.gamerTag
+            : match.player2.gamerTag
+        }
+        odds={
+          selectedPlayer === 'PLAYER_1' ? odds.player1Odds : odds.player2Odds
+        }
+        userBalance={wallet?.balance ?? 0}
+        onPlaceBet={handlePlaceBet}
+        onClose={() => setBetSlipOpen(false)}
+      />
+    )}
+  </>
   )
 }
