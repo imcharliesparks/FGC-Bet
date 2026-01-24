@@ -6,9 +6,11 @@ import { useState } from 'react'
 import { useMatchOdds } from '@/hooks/useMatchOdds'
 import { api } from '@/lib/trpc/react'
 import { MobileBetSlip } from '@/components/betting/MobileBetSlip'
+import { type FullMatch } from '@/types/matches'
+import Image from 'next/image'
 
 interface MatchCardProps {
-  match: any
+  match: FullMatch
 }
 
 export function MatchCard({ match }: MatchCardProps) {
@@ -79,9 +81,11 @@ export function MatchCard({ match }: MatchCardProps) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <img
+              <Image
                 src={match.player1.imageUrl || '/default-player.png'}
                 alt={match.player1.gamerTag}
+                width={48}
+                height={48}
                 className="w-12 h-12 rounded-full flex-shrink-0 object-cover"
               />
               <div className="flex-1 min-w-0">
@@ -106,9 +110,11 @@ export function MatchCard({ match }: MatchCardProps) {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <img
+              <Image
                 src={match.player2.imageUrl || '/default-player.png'}
                 alt={match.player2.gamerTag}
+                width={48}
+                height={48}
                 className="w-12 h-12 rounded-full flex-shrink-0 object-cover"
               />
               <div className="flex-1 min-w-0">

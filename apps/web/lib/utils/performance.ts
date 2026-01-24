@@ -1,3 +1,5 @@
+import React from 'react'
+
 /**
  * Performance utilities for optimizing the application
  */
@@ -6,20 +8,16 @@
  * Delays the import of a module until it's needed
  * Useful for code-splitting heavy components
  */
-export function lazyWithPreload<T extends React.ComponentType<any>>(
+export function lazyWithPreload<T extends React.ComponentType<unknown>>(
   factory: () => Promise<{ default: T }>
 ) {
   const LazyComponent = React.lazy(factory)
   let factoryPromise: Promise<{ default: T }> | undefined
-  let Component: T | undefined
 
   return Object.assign(LazyComponent, {
     preload() {
       if (!factoryPromise) {
         factoryPromise = factory()
-        factoryPromise.then((module) => {
-          Component = module.default
-        })
       }
       return factoryPromise
     },
@@ -30,7 +28,7 @@ export function lazyWithPreload<T extends React.ComponentType<any>>(
  * Debounce function for performance optimization
  * Delays execution until after wait milliseconds have elapsed
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -53,11 +51,11 @@ export function debounce<T extends (...args: any[]) => any>(
  * Throttle function for performance optimization
  * Ensures function is only called once per specified time period
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
-  let inThrottle: boolean = false
+  let inThrottle = false
 
   return function executedFunction(...args: Parameters<T>) {
     if (!inThrottle) {
@@ -147,8 +145,10 @@ export function prefersReducedMotion(): boolean {
 export function getConnectionSpeed(): 'slow' | 'fast' | 'unknown' {
   if (!isClient) return 'unknown'
 
-  // @ts-ignore - NetworkInformation API is not in TypeScript types yet
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+  // NetworkInformation API is not in TypeScript types yet
+  const connection = (navigator as unknown as { connection?: { effectiveType: string } }).connection || 
+                    (navigator as unknown as { mozConnection?: { effectiveType: string } }).mozConnection || 
+                    (navigator as unknown as { webkitConnection?: { effectiveType: string } }).webkitConnection
 
   if (!connection) return 'unknown'
 
@@ -167,6 +167,3 @@ export function isMobileDevice(): boolean {
   if (!isClient) return false
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 }
-
-// React import for lazy loading
-import React from 'react'

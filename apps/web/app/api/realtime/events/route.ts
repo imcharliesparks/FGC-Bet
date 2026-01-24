@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   const heartbeatInterval = setInterval(async () => {
     try {
       await sendEvent({ type: 'heartbeat', timestamp: Date.now() })
-    } catch (error) {
+    } catch {
       clearInterval(heartbeatInterval)
     }
   }, 30000) // Every 30 seconds

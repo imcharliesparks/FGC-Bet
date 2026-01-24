@@ -1,37 +1,54 @@
-'use client'
-
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useRealtimeEvents } from './useRealtimeEvents'
+import {
+  type MatchUpdate,
+  type OddsUpdate,
+  type MatchSettlement,
+  type RealtimeEvent,
+} from '@/lib/realtime/event-bus'
 
-export interface MatchUpdate {
-  status?: string
-  player1Score?: number
-  player2Score?: number
-  bettingOpen?: boolean
-  winnerId?: string | null
+export interface MatchUpdatesOptions {
+  onMatchUpdate?: (update: MatchUpdate) => void
+  onOddsUpdate?: (update: OddsUpdate) => void
+  onSettlement?: (settlement: MatchSettlement) => void
 }
 
-export function useMatchUpdates(matchId: string) {
-  const { isConnected, lastEvent } = useRealtimeEvents(`match:${matchId}`)
+export function useMatchUpdates(
+  matchId: string,
+  options: MatchUpdatesOptions = {}
+) {
+  const { onMatchUpdate, onOddsUpdate, onSettlement } = options
   const [matchUpdate, setMatchUpdate] = useState<MatchUpdate | null>(null)
-  const [oddsUpdate, setOddsUpdate] = useState<any>(null)
-  const [settlement, setSettlement] = useState<any>(null)
+  const [oddsUpdate, setOddsUpdate] = useState<OddsUpdate | null>(null)
+  const [settlement, setSettlement] = useState<MatchSettlement | null>(null)
 
-  useEffect(() => {
-    if (!lastEvent) return
+  const handleEvent = useCallback(
+    (event: RealtimeEvent) => {
+      switch (event.type) {
+        case 'match:update': {
+          const update = event.data as MatchUpdate
+          setMatchUpdate(update)
+          onMatchUpdate?.(update)
+          break
+        }
+        case 'odds:update': {
+          const update = event.data as OddsUpdate
+          setOddsUpdate(update)
+          onOddsUpdate?.(update)
+          break
+        }
+        case 'match:settled': {
+          const update = event.data as MatchSettlement
+          setSettlement(update)
+          onSettlement?.(update)
+          break
+        }
+      }
+    },
+    [onMatchUpdate, onOddsUpdate, onSettlement]
+  )
 
-    switch (lastEvent.type) {
-      case 'match:update':
-        setMatchUpdate(lastEvent.data)
-        break
-      case 'odds:update':
-        setOddsUpdate(lastEvent.data)
-        break
-      case 'match:settled':
-        setSettlement(lastEvent.data)
-        break
-    }
-  }, [lastEvent])
+  const { isConnected } = useRealtimeEvents(`match:${matchId}`, handleEvent)
 
   return {
     isConnected,

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db/prisma'
 import { MatchImporter } from '@/lib/startgg/import'
 import { SettlementService } from '@/lib/betting/settlement-service'
 import { getEventBus } from '@/lib/realtime/event-bus'
+import { type Prisma } from '@prisma/client'
 import { adminProcedure, router } from '../trpc'
 
 const createMatchInput = z.object({
@@ -79,9 +80,9 @@ export const adminRouter = router({
   }),
 
   listMatches: adminProcedure.input(listMatchesInput).query(async ({ input }) => {
-    const where: any = {}
+    const where: Prisma.MatchWhereInput = {}
     if (input?.tournamentId) where.tournamentId = input.tournamentId
-    if (input?.status) where.status = input.status
+    if (input?.status) where.status = input.status as MatchStatus
 
     const matches = await prisma.match.findMany({
       where,
@@ -116,7 +117,7 @@ export const adminRouter = router({
     async ({ input }) => {
       const { id, data } = input
 
-      const updateData: any = { ...data }
+      const updateData: Prisma.MatchUpdateInput = { ...data }
       if (data.actualStart) updateData.actualStart = new Date(data.actualStart)
       if (data.completedAt) updateData.completedAt = new Date(data.completedAt)
 
@@ -143,8 +144,8 @@ export const adminRouter = router({
       const eventBus = getEventBus()
       await eventBus.publishMatchUpdate(id, {
         status: match.status,
-        player1Score: match.player1Score,
-        player2Score: match.player2Score,
+        player1Score: match.player1Score ?? undefined,
+        player2Score: match.player2Score ?? undefined,
         bettingOpen: match.bettingOpen,
         winnerId: match.winnerId,
       })

@@ -49,7 +49,7 @@ export default async function DashboardPage() {
   })
 
   // Get user stats
-  const [totalBets, wonBets, lostBets] = await Promise.all([
+  const [totalBets, wonBets] = await Promise.all([
     prisma.bet.count({ where: { userId: user.id } }),
     prisma.bet.count({ where: { userId: user.id, status: 'WON' } }),
     prisma.bet.count({ where: { userId: user.id, status: 'LOST' } }),
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
           Welcome back, {user.firstName || user.username}!
         </h1>
         <p className="mt-2 text-zinc-400">
-          Here's what's happening with your betting activity
+          Here&apos;s what&apos;s happening with your betting activity
         </p>
       </div>
 

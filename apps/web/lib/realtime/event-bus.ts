@@ -1,4 +1,5 @@
 import { getRedisPubClient, getRedisSubClient } from '../redis/client'
+import { type MatchStatus } from '@repo/database'
 
 export type EventType =
   | 'match:update'
@@ -6,9 +7,41 @@ export type EventType =
   | 'bet:placed'
   | 'match:settled'
 
+export interface MatchUpdate {
+  matchId?: string
+  status?: MatchStatus
+  player1Score?: number
+  player2Score?: number
+  bettingOpen?: boolean
+  winnerId?: string | null
+}
+
+export interface OddsUpdate {
+  player1Odds: number
+  player2Odds: number
+  player1Volume: number
+  player2Volume: number
+  timestamp?: string | number
+}
+
+export interface BetPlacedEvent {
+  id: string
+  amount: number
+  odds: number
+  potentialPayout: number
+}
+
+export interface MatchSettlement {
+  totalBets: number
+  settledCount: number
+  wonCount: number
+  lostCount: number
+  matchId?: string
+}
+
 export interface RealtimeEvent {
   type: EventType
-  data: any
+  data: MatchUpdate | OddsUpdate | BetPlacedEvent | MatchSettlement
   timestamp: number
 }
 
@@ -101,7 +134,11 @@ export class RealtimeEventBus {
   /**
    * Publish an event to a channel
    */
-  async publish(channel: string, type: EventType, data: any): Promise<void> {
+  async publish(
+    channel: string,
+    type: EventType,
+    data: MatchUpdate | OddsUpdate | BetPlacedEvent | MatchSettlement
+  ): Promise<void> {
     const event: RealtimeEvent = {
       type,
       data,
@@ -126,7 +163,10 @@ export class RealtimeEventBus {
   /**
    * Publish match update
    */
-  async publishMatchUpdate(matchId: string, update: any): Promise<void> {
+  async publishMatchUpdate(
+    matchId: string,
+    update: MatchUpdate
+  ): Promise<void> {
     await this.publish(`match:${matchId}`, 'match:update', update)
     await this.publish('match:all', 'match:update', { matchId, ...update })
   }
@@ -134,21 +174,30 @@ export class RealtimeEventBus {
   /**
    * Publish odds update
    */
-  async publishOddsUpdate(matchId: string, odds: any): Promise<void> {
+  async publishOddsUpdate(
+    matchId: string,
+    odds: OddsUpdate
+  ): Promise<void> {
     await this.publish(`match:${matchId}`, 'odds:update', odds)
   }
 
   /**
    * Publish bet placed notification
    */
-  async publishBetPlaced(userId: string, bet: any): Promise<void> {
+  async publishBetPlaced(
+    userId: string,
+    bet: BetPlacedEvent
+  ): Promise<void> {
     await this.publish(`user:${userId}`, 'bet:placed', bet)
   }
 
   /**
    * Publish match settled notification
    */
-  async publishMatchSettled(matchId: string, settlement: any): Promise<void> {
+  async publishMatchSettled(
+    matchId: string,
+    settlement: MatchSettlement
+  ): Promise<void> {
     await this.publish(`match:${matchId}`, 'match:settled', settlement)
     await this.publish('match:all', 'match:settled', { matchId, ...settlement })
   }

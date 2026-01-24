@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
 import { requirePageAdmin } from '@/lib/auth/helpers'
-import { redirect } from 'next/navigation'
 
 export default async function AdminLayout({
   children,

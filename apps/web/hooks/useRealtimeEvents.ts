@@ -2,16 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-export interface RealtimeEvent {
-  type: string
-  data: any
-  timestamp: number
-}
+import { type RealtimeEvent } from '@/lib/realtime/event-bus'
 
-export function useRealtimeEvents(channel: string) {
+export function useRealtimeEvents(channel: string, onEvent?: (event: RealtimeEvent) => void) {
   const [isConnected, setIsConnected] = useState(false)
   const [lastEvent, setLastEvent] = useState<RealtimeEvent | null>(null)
   const eventSourceRef = useRef<EventSource | null>(null)
+
+  const onEventRef = useRef(onEvent)
+
+  useEffect(() => {
+    onEventRef.current = onEvent
+  }, [onEvent])
 
   useEffect(() => {
     if (!channel) return
@@ -22,7 +24,6 @@ export function useRealtimeEvents(channel: string) {
     )
 
     eventSource.onopen = () => {
-      console.log(`SSE connected to channel: ${channel}`)
       setIsConnected(true)
     }
 
@@ -30,6 +31,7 @@ export function useRealtimeEvents(channel: string) {
       try {
         const data = JSON.parse(event.data)
         setLastEvent(data)
+        onEventRef.current?.(data)
       } catch (error) {
         console.error('Error parsing SSE message:', error)
       }

@@ -1,13 +1,14 @@
 'use client'
 
 import { useMemo } from 'react'
-
 import { format } from 'date-fns'
 import { useBettingInterface } from '@/hooks/useBettingInterface'
 import { MobileBetSlip } from '@/components/betting/MobileBetSlip'
 import { useMatchUpdates } from '@/hooks/useMatchUpdates'
+import { type FullMatch } from '@/types/matches'
+import Image from 'next/image'
 
-export function MatchDetailClient({ initialMatch }: { initialMatch: any }) {
+export function MatchDetailClient({ initialMatch }: { initialMatch: FullMatch }) {
   const {
     betSlipOpen,
     selectedPlayer,
@@ -16,14 +17,13 @@ export function MatchDetailClient({ initialMatch }: { initialMatch: any }) {
     userBalance,
     match,
     odds,
-    oddsLoading,
     openBetSlip,
     handlePlaceBet,
     closeBetSlip,
     canBet,
   } = useBettingInterface(initialMatch.id)
 
-  const { matchUpdate, oddsUpdate } = useMatchUpdates(initialMatch.id)
+  const { matchUpdate } = useMatchUpdates(initialMatch.id)
 
   // Use real-time updates if available, otherwise use initial data
   // Merge the real-time update into the existing match data so we don't lose fields like players/tournament
@@ -62,9 +62,11 @@ export function MatchDetailClient({ initialMatch }: { initialMatch: any }) {
         {/* Players - Large Display */}
         <div className="grid grid-cols-2 gap-8 my-8">
           <div className="text-center">
-            <img
+            <Image
               src={displayMatch.player1.imageUrl || '/default-player.png'}
               alt={displayMatch.player1.gamerTag}
+              width={128}
+              height={128}
               className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
             />
             <h2 className="text-2xl font-bold mb-2">
@@ -81,9 +83,11 @@ export function MatchDetailClient({ initialMatch }: { initialMatch: any }) {
           </div>
 
           <div className="text-center">
-            <img
+            <Image
               src={displayMatch.player2.imageUrl || '/default-player.png'}
               alt={displayMatch.player2.gamerTag}
+              width={128}
+              height={128}
               className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
             />
             <h2 className="text-2xl font-bold mb-2">

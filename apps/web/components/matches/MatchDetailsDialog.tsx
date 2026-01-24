@@ -12,46 +12,12 @@ import Link from 'next/link'
 import { formatGameName, formatRelativeTime } from '@/lib/utils/format'
 import { useBettingInterface } from '@/hooks/useBettingInterface'
 import { MobileBetSlip } from '@/components/betting/MobileBetSlip'
+import { type FullMatch, type Player } from '@/types/matches'
+import { JSX } from 'react'
 
-type Player = {
-  gamerTag: string
-  country?: string | null
-  eloRating?: number | null
-  startGgId?: string | null
-}
-
-type Tournament = {
-  id?: string
-  name: string
-  slug?: string | null
-  location?: string | null
-}
-
-type MatchDetails = {
-  id: string
-  startGgId?: string | null
-  round?: string | null
-  bestOf?: number | null
-  status: string
-  game: string
-  bettingOpen: boolean
-  scheduledStart: Date | string
-  actualStart?: Date | string | null
-  completedAt?: Date | string | null
-  streamUrl?: string | null
-  vodUrl?: string | null
-  player1: Player
-  player2: Player
-  player1Score?: number | null
-  player2Score?: number | null
-  tournament: Tournament
-  _count?: {
-    bets?: number
-  }
-}
 
 interface MatchDetailsDialogProps {
-  match: MatchDetails
+  match: FullMatch
   trigger: JSX.Element
 }
 
@@ -63,7 +29,6 @@ export function MatchDetailsDialog({ match, trigger }: MatchDetailsDialogProps) 
     selectedPlayerOdds,
     userBalance,
     odds,
-    oddsLoading,
     openBetSlip,
     handlePlaceBet,
     closeBetSlip,

@@ -1,20 +1,29 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useMatchUpdates } from '@/hooks/useMatchUpdates'
 import { formatGameName, formatRelativeTime } from '@/lib/utils/format'
 import { MatchDetailsDialog } from './MatchDetailsDialog'
 import { useMatchOdds } from '@/hooks/useMatchOdds'
 import { api } from '@/lib/trpc/react'
 import { MobileBetSlip } from '@/components/betting/MobileBetSlip'
+import { type MatchUpdate } from '@/lib/realtime/event-bus'
+import { type FullMatch } from '@/types/matches'
 
 interface LiveMatchCardProps {
-  match: any
+  match: FullMatch
 }
 
 export function LiveMatchCard({ match: initialMatch }: LiveMatchCardProps) {
   const [match, setMatch] = useState(initialMatch)
-  const { isConnected, matchUpdate, oddsUpdate } = useMatchUpdates(match.id)
+
+  const handleMatchUpdate = useCallback((update: MatchUpdate) => {
+    setMatch((prev) => ({ ...prev, ...update }))
+  }, [])
+
+  const { isConnected, oddsUpdate } = useMatchUpdates(match.id, {
+    onMatchUpdate: handleMatchUpdate,
+  })
 
   const [betSlipOpen, setBetSlipOpen] = useState(false)
   const [selectedPlayer, setSelectedPlayer] = useState<
@@ -53,12 +62,6 @@ export function LiveMatchCard({ match: initialMatch }: LiveMatchCardProps) {
     })
   }
 
-  // Update match data when real-time updates arrive
-  useEffect(() => {
-    if (matchUpdate) {
-      setMatch((prev: any) => ({ ...prev, ...matchUpdate }))
-    }
-  }, [matchUpdate])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -178,7 +181,7 @@ export function LiveMatchCard({ match: initialMatch }: LiveMatchCardProps) {
           {match.bettingOpen ? (
             <div className="bg-green-50 border border-green-200 rounded-md p-3">
               <div className="text-sm font-medium text-green-800">Betting Open</div>
-              {oddsUpdate && (
+              {oddsUpdate && oddsUpdate.timestamp && (
                 <div className="text-xs text-green-600 mt-1">
                   Odds updated {new Date(oddsUpdate.timestamp).toLocaleTimeString()}
                 </div>

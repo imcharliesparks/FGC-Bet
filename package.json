@@ -26,5 +26,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "overrides": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19"
   }
 }

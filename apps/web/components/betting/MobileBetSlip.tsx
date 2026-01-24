@@ -15,8 +15,6 @@ interface MobileBetSlipProps {
 }
 
 export function MobileBetSlip({
-  matchId,
-  selection,
   playerName,
   odds,
   onPlaceBet,
@@ -58,8 +56,9 @@ export function MobileBetSlip({
       await onPlaceBet(amount)
       toast.success('Bet placed successfully!')
       onClose()
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to place bet')
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to place bet'
+      toast.error(message)
     } finally {
       setIsPlacing(false)
     }

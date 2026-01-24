@@ -1,5 +1,4 @@
 import { api } from '@/lib/trpc/react'
-import { useEffect, useState } from 'react'
 import { useMatchUpdates } from './useMatchUpdates'
 
 export function useMatchOdds(matchId: string) {
@@ -14,28 +13,12 @@ export function useMatchOdds(matchId: string) {
 
   // Subscribe to real-time updates
   const { oddsUpdate } = useMatchUpdates(matchId)
-  const [liveOdds, setLiveOdds] = useState(data)
 
-  // Merge initial data
-  useEffect(() => {
-    if (data) setLiveOdds(data)
-  }, [data])
-
-  // Apply real-time updates
-  useEffect(() => {
-    if (oddsUpdate) {
-      setLiveOdds((prev) => ({
-        ...prev,
-        player1Odds: oddsUpdate.player1Odds,
-        player2Odds: oddsUpdate.player2Odds,
-        player1Volume: oddsUpdate.player1Volume,
-        player2Volume: oddsUpdate.player2Volume,
-      }))
-    }
-  }, [oddsUpdate])
+  // Use real-time updates if available, otherwise fallback to tRPC data
+  const odds = oddsUpdate || data
 
   return {
-    odds: liveOdds,
+    odds,
     isLoading,
     error,
     isLive: !!oddsUpdate,

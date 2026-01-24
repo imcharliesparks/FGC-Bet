@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { BetSelection, BetStatus, BetType } from '@repo/database'
 import { BettingService } from '@/lib/betting/betting-service'
 import { protectedProcedure, router } from '../trpc'
+import { type Prisma } from '@prisma/client'
 
 const placeBetInput = z.object({
   matchId: z.string(),
@@ -17,17 +18,28 @@ const listBetsInput = z.object({
 
 const betService = new BettingService()
 
-const serializeBet = (bet: any) => ({
+interface SerializableBet {
+  amount: Prisma.Decimal | number
+  odds: Prisma.Decimal | number
+  potentialPayout: Prisma.Decimal | number
+  actualPayout?: Prisma.Decimal | number | null
+  match?: {
+    player1Score?: number | null
+    player2Score?: number | null
+  } | null
+}
+
+const serializeBet = <T extends SerializableBet>(bet: T) => ({
   ...bet,
   amount: Number(bet.amount),
   odds: Number(bet.odds),
   potentialPayout: Number(bet.potentialPayout),
   actualPayout: bet.actualPayout ? Number(bet.actualPayout) : null,
-  match: bet.match && {
+  match: bet.match ? {
     ...bet.match,
     player1Score: bet.match.player1Score,
     player2Score: bet.match.player2Score,
-  },
+  } : null,
 })
 
 export const betsRouter = router({

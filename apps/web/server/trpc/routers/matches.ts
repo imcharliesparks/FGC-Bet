@@ -3,10 +3,23 @@ import { BetType, MatchStatus } from '@repo/database'
 import { prisma } from '@/lib/db/prisma'
 import { OddsService } from '@/lib/betting/odds-service'
 import { publicProcedure, router } from '../trpc'
+import { type Prisma } from '@prisma/client'
 
 const oddsService = new OddsService()
 
-const serializeMatch = (match: any) => ({
+type MatchWithDetails = Prisma.MatchGetPayload<{
+  include: {
+    player1: true
+    player2: true
+    tournament: true
+  }
+}> & {
+  _count?: {
+    bets: number
+  }
+}
+
+const serializeMatch = (match: MatchWithDetails) => ({
   ...match,
   player1Score: match.player1Score,
   player2Score: match.player2Score,
@@ -83,7 +96,7 @@ export const matchesRouter = router({
         .optional()
     )
     .query(async ({ input }) => {
-      const where: any = {}
+      const where: Prisma.MatchWhereInput = {}
       if (input?.status) where.status = input.status
       if (input?.tournamentId) where.tournamentId = input.tournamentId
 

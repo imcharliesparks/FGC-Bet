@@ -1,27 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { LiveMatchCard } from './LiveMatchCard'
 import { useRealtimeEvents } from '@/hooks/useRealtimeEvents'
 import { formatGameName, formatRelativeTime } from '@/lib/utils/format'
-
-interface UpcomingTournament {
-  id: string
-  name: string
-  slug: string
-  game: string
-  startDate: string | Date
-  endDate: string | Date | null
-  location?: string | null
-  imageUrl?: string | null
-  isFeatured?: boolean
-  _count?: {
-    matches: number
-  }
-}
+import { type FullMatch, type UpcomingTournament } from '@/types/matches'
+import { type MatchUpdate, type RealtimeEvent } from '@/lib/realtime/event-bus'
+import Image from 'next/image'
 
 interface MatchesPageProps {
-  initialMatches: any[]
+  initialMatches: FullMatch[]
   upcomingTournaments?: UpcomingTournament[]
 }
 
@@ -30,11 +18,9 @@ export function MatchesPage({
   upcomingTournaments = [],
 }: MatchesPageProps) {
   const [matches, setMatches] = useState(initialMatches)
-  const { lastEvent } = useRealtimeEvents('match:all')
-
-  useEffect(() => {
-    if (lastEvent && lastEvent.type === 'match:update') {
-      const { matchId, ...update } = lastEvent.data
+  const handleEvent = useCallback((event: RealtimeEvent) => {
+    if (event.type === 'match:update') {
+      const { matchId, ...update } = event.data as MatchUpdate
 
       setMatches((prev) =>
         prev.map((match) =>
@@ -42,7 +28,9 @@ export function MatchesPage({
         )
       )
     }
-  }, [lastEvent])
+  }, [])
+
+  useRealtimeEvents('match:all', handleEvent)
 
   if (matches.length === 0) {
     return (
@@ -80,9 +68,11 @@ export function MatchesPage({
                 >
                   <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-slate-100">
                     {tournament.imageUrl ? (
-                      <img
+                      <Image
                         src={tournament.imageUrl}
                         alt={tournament.name}
+                        width={64}
+                        height={64}
                         className="h-full w-full object-cover"
                       />
                     ) : (

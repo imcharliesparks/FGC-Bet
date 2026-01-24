@@ -32,11 +32,9 @@ export async function GET(
     }
 
     return NextResponse.json({ bet: serializedBet })
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch bet' },
-      { status: 500 }
-    )
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch bet'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -60,10 +58,8 @@ export async function DELETE(
         potentialPayout: Number(bet.potentialPayout),
       },
     })
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || 'Failed to cancel bet' },
-      { status: 500 }
-    )
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to cancel bet'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
