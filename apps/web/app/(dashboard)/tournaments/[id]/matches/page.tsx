@@ -46,9 +46,9 @@ export default async function PublicTournamentMatchesPage(props: {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-600">Tournament Matches</p>
-          <h1 className="text-3xl font-bold text-slate-900">{tournament.name}</h1>
-          <div className="mt-1 text-sm text-slate-600">
+          <p className="text-sm text-zinc-400">Tournament Matches</p>
+          <h1 className="text-3xl font-bold text-white">{tournament.name}</h1>
+          <div className="mt-1 text-sm text-zinc-400">
             {formatGameName(tournament.game)} • {formatRelativeTime(tournament.startDate)}
             {tournament.location ? ` • ${tournament.location}` : ''}
           </div>
