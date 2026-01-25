@@ -108,6 +108,20 @@ export default async function DashboardLayout({
             >
               Wallet
             </Link>
+            <Link
+              href="/tournaments"
+              className="block px-3 py-2 rounded-md text-base font-medium text-zinc-200 hover:text-white hover:bg-zinc-800/80"
+            >
+              Tournaments
+            </Link>
+            {admin && (
+              <Link
+                href="/admin"
+                className="block px-3 py-2 rounded-md text-base font-medium text-zinc-200 hover:text-white hover:bg-zinc-800/80"
+              >
+                Admin
+              </Link>
+            )}
           </div>
         </div>
       </nav>
