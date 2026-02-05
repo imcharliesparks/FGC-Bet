@@ -22,7 +22,7 @@ jobs:
           bun-version: latest
 
       - name: Install Dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Run Build, Lint, and Type Check
         run: bun run turbo run lint type-check
