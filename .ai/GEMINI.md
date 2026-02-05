@@ -13,7 +13,10 @@ When I ask you to "remember" something:
 
 ## Available Workflows
 
+
 - `/dev` - Start development server
+- `/build` - Build the monorepo
+- `/install` - Install dependencies
 - `/lint-check` - Run lint and type-check
 - `/db-sync` - Sync Prisma schema to database
 - `/add-shadcn` - Add a shadcn/ui component
