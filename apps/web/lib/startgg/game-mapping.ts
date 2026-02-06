@@ -6,6 +6,10 @@ import { FightingGame } from '@repo/database'
 export function mapGameToEnum(gameName: string): FightingGame {
   const normalized = gameName.toLowerCase()
 
+  if (normalized.includes('2xko') || normalized.includes('project l')) {
+    return 'TWOXKO'
+  }
+
   if (normalized.includes('street fighter 6') || normalized.includes('sf6')) {
     return 'STREET_FIGHTER_6'
   }
