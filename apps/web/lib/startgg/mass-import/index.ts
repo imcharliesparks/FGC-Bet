@@ -10,7 +10,6 @@ import {
 import {
   TWOXKO_VIDEOGAME_ID,
   TWOXKO_IMPORT_START_DATE,
-  TWOXKO_VIDEOGAME_NAME,
   resolveStartggVideogameName,
   STARTGG_PAGINATION,
 } from '../constants'
@@ -48,9 +47,7 @@ export class MassImportService {
     this.jobId = options.jobId || crypto.randomUUID()
     this.videogameId = options.videogameId || TWOXKO_VIDEOGAME_ID
     this.videogameName =
-      options.videogameName ||
-      resolveStartggVideogameName(this.videogameId) ||
-      TWOXKO_VIDEOGAME_NAME
+      options.videogameName || resolveStartggVideogameName(this.videogameId)
     this.startDate = options.startDate
     this.progress = new ProgressTracker(this.jobId)
   }
