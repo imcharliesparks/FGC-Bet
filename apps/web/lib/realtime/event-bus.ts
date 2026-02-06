@@ -54,6 +54,13 @@ export interface ImportProgressEvent {
   totalParticipants: number
   processedParticipants: number
   errorCount: number
+  recentErrors: Array<{ message: string; item: string; timestamp: number }>
+  startedAt: number
+  estimatedTimeRemaining?: number
+  rateInfo: {
+    requestsRemaining: number
+    windowResetAt: number
+  }
 }
 
 export interface RealtimeEvent {
