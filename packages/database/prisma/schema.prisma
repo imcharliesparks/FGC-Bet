@@ -329,6 +329,47 @@ model StartGGParticipant {
   @@index([playerId])
 }
 
+model StartGGImportJob {
+  id                    String              @id @default(cuid())
+  status                ImportJobStatus     @default(PENDING)
+
+  // Job configuration
+  videogameId           Int
+  videogameName         String
+  startDate             DateTime
+  endDate               DateTime?
+
+  // Progress tracking
+  totalTournaments      Int                 @default(0)
+  processedTournaments  Int                 @default(0)
+  totalEvents           Int                 @default(0)
+  processedEvents       Int                 @default(0)
+  totalSets             Int                 @default(0)
+  processedSets         Int                 @default(0)
+  totalParticipants     Int                 @default(0)
+  processedParticipants Int                 @default(0)
+
+  // Error tracking
+  errorCount            Int                 @default(0)
+  errors                Json?
+
+  // Current position (for resume)
+  currentTournamentPage Int                 @default(1)
+  currentTournamentId   String?
+  currentEventId        String?
+
+  // Timing
+  startedAt             DateTime?
+  completedAt           DateTime?
+  lastActivityAt        DateTime            @default(now())
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([status])
+  @@index([videogameId])
+}
+
 enum FightingGame {
   STREET_FIGHTER_6
   TEKKEN_8
