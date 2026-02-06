@@ -17,6 +17,19 @@ export const STARTGG_VIDEOGAME_IDS = {
 } as const
 
 export const TWOXKO_VIDEOGAME_ID = STARTGG_VIDEOGAME_IDS.TWOXKO
+export const TWOXKO_VIDEOGAME_NAME = '2XKO'
+
+export const STARTGG_VIDEOGAME_NAMES: Record<number, string> = {
+  [STARTGG_VIDEOGAME_IDS.TWOXKO]: TWOXKO_VIDEOGAME_NAME,
+  [STARTGG_VIDEOGAME_IDS.STREET_FIGHTER_6]: 'Street Fighter 6',
+  [STARTGG_VIDEOGAME_IDS.TEKKEN_8]: 'Tekken 8',
+  [STARTGG_VIDEOGAME_IDS.GUILTY_GEAR_STRIVE]: 'Guilty Gear Strive',
+  [STARTGG_VIDEOGAME_IDS.MORTAL_KOMBAT_1]: 'Mortal Kombat 1',
+}
+
+export function resolveStartggVideogameName(videogameId: number): string {
+  return STARTGG_VIDEOGAME_NAMES[videogameId] ?? 'Unknown'
+}
 
 // Rate limiting configuration
 export const STARTGG_RATE_LIMIT = {

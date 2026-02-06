@@ -3,7 +3,10 @@ import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/db/prisma'
 import { MassImportService } from '@/lib/startgg/mass-import'
 import { getEventBus } from '@/lib/realtime/event-bus'
-import { TWOXKO_IMPORT_START_DATE } from '@/lib/startgg/constants'
+import {
+  TWOXKO_IMPORT_START_DATE,
+  TWOXKO_VIDEOGAME_NAME,
+} from '@/lib/startgg/constants'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -33,6 +36,7 @@ export async function POST(request: NextRequest) {
 
     const service = new MassImportService(apiKey, {
       startDate: TWOXKO_IMPORT_START_DATE,
+      videogameName: TWOXKO_VIDEOGAME_NAME,
     })
 
     const jobId = service.getJobId()

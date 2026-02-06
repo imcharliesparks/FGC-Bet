@@ -32,6 +32,7 @@ export interface ImportError {
 
 export interface MassImportOptions {
   videogameId?: number
+  videogameName?: string
   startDate: Date
   endDate?: Date
   jobId?: string
@@ -76,6 +77,13 @@ export interface EventNode {
   }
 }
 
+export interface EntrantNode {
+  id: number
+  name: string
+  initialSeedNum?: number
+  participants?: ParticipantNode[]
+}
+
 export interface SetNode {
   id: number
   fullRoundText?: string
@@ -103,12 +111,7 @@ export interface SlotNode {
       score?: { value: number }
     }
   }
-  entrant?: {
-    id: number
-    name: string
-    initialSeedNum?: number
-    participants?: ParticipantNode[]
-  }
+  entrant?: EntrantNode
 }
 
 export interface ParticipantNode {

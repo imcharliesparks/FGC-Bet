@@ -10,6 +10,8 @@ import {
 import {
   TWOXKO_VIDEOGAME_ID,
   TWOXKO_IMPORT_START_DATE,
+  TWOXKO_VIDEOGAME_NAME,
+  resolveStartggVideogameName,
   STARTGG_PAGINATION,
 } from '../constants'
 import type {
@@ -18,6 +20,9 @@ import type {
   TournamentsResponse,
   EventSetsResponse,
   TournamentNode,
+  EventNode,
+  EntrantNode,
+  ParticipantNode,
   SetNode,
 } from './types'
 
@@ -28,6 +33,7 @@ export class MassImportService {
   private abortController: AbortController
   private jobId: string
   private videogameId: number
+  private videogameName: string
   private startDate: Date
 
   constructor(
@@ -41,6 +47,10 @@ export class MassImportService {
     this.abortController = new AbortController()
     this.jobId = options.jobId || crypto.randomUUID()
     this.videogameId = options.videogameId || TWOXKO_VIDEOGAME_ID
+    this.videogameName =
+      options.videogameName ||
+      resolveStartggVideogameName(this.videogameId) ||
+      TWOXKO_VIDEOGAME_NAME
     this.startDate = options.startDate
     this.progress = new ProgressTracker(this.jobId)
   }
@@ -92,10 +102,10 @@ export class MassImportService {
   /**
    * Cancel the import
    */
-  cancel(): void {
+  async cancel(): Promise<void> {
     this.abortController.abort()
-    this.progress.update({ status: 'cancelled' })
-    this.finalizeJob('CANCELLED')
+    await this.progress.update({ status: 'cancelled' })
+    await this.finalizeJob('CANCELLED')
   }
 
   /**
@@ -114,7 +124,7 @@ export class MassImportService {
         id: this.jobId,
         status: 'RUNNING',
         videogameId: this.videogameId,
-        videogameName: '2XKO',
+        videogameName: this.videogameName,
         startDate: this.startDate,
         startedAt: new Date(),
       },
@@ -264,7 +274,10 @@ export class MassImportService {
   /**
    * Upsert an event record
    */
-  private async upsertEvent(event: any, tournamentStartGgId: number): Promise<void> {
+  private async upsertEvent(
+    event: EventNode,
+    tournamentStartGgId: number
+  ): Promise<void> {
     // Find our tournament record
     const tournament = await prisma.startGGTournament.findUnique({
       where: { startGgId: tournamentStartGgId },
@@ -282,7 +295,7 @@ export class MassImportService {
         slug: event.slug,
         type: event.type,
         videogameId: event.videogame?.id || this.videogameId,
-        videogameName: event.videogame?.name || '2XKO',
+        videogameName: event.videogame?.name || this.videogameName,
         startAt: event.startAt ? new Date(event.startAt * 1000) : null,
         numEntrants: event.numEntrants,
         state: event.state,
@@ -442,7 +455,10 @@ export class MassImportService {
   /**
    * Upsert an entrant record and return its ID
    */
-  private async upsertEntrant(entrant: any, eventId: string): Promise<string> {
+  private async upsertEntrant(
+    entrant: EntrantNode,
+    eventId: string
+  ): Promise<string> {
     const record = await prisma.startGGEntrant.upsert({
       where: { startGgId: entrant.id },
       create: {
@@ -470,36 +486,69 @@ export class MassImportService {
       currentItem: 'Starting participant import...',
     })
 
-    // Get all entrants with their participants from sets
-    const entrants = await prisma.startGGEntrant.findMany({
+    const events = await prisma.startGGEvent.findMany({
       select: {
         id: true,
         startGgId: true,
-        event: {
-          select: {
-            tournamentId: true,
-          },
-        },
+        name: true,
+        tournamentId: true,
       },
     })
 
-    // For each tournament, fetch participants
-    const processedTournaments = new Set<string>()
+    const participantIds = new Set<number>()
+    const entrantIdCache = new Map<number, string>()
 
-    for (const entrant of entrants) {
+    for (const event of events) {
       if (this.isCancelled()) return
 
-      const tournamentId = entrant.event.tournamentId
+      await this.progress.update({ currentItem: `Participants: ${event.name}` })
 
-      if (processedTournaments.has(tournamentId)) continue
-      processedTournaments.add(tournamentId)
+      let page = 1
+      let totalPages = 1
+      const perPage = STARTGG_PAGINATION.SETS_PER_PAGE
 
-      // For now, we'll extract participants from the sets we already have
-      // A more thorough approach would be to query participants separately
-      await this.progress.update({
-        processedParticipants:
-          this.progress.getProgress().processedParticipants + 1,
-      })
+      while (page <= totalPages) {
+        if (this.isCancelled()) return
+
+        await this.rateLimiter.acquire()
+
+        try {
+          const response = await this.client.request<EventSetsResponse>(
+            EVENT_SETS_QUERY,
+            {
+              eventId: event.startGgId,
+              page,
+              perPage,
+            }
+          )
+
+          if (page === 1 && response.event?.sets?.pageInfo) {
+            totalPages = response.event.sets.pageInfo.totalPages || 1
+          }
+
+          if (response.event?.sets?.nodes) {
+            for (const set of response.event.sets.nodes) {
+              await this.importParticipantsFromSet(
+                set,
+                event.tournamentId,
+                entrantIdCache,
+                participantIds
+              )
+            }
+          }
+
+          page++
+        } catch (error) {
+          this.progress.addError({
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Failed to fetch participants',
+            item: event.name,
+          })
+          break
+        }
+      }
     }
 
     // Mark all tournaments as synced
@@ -509,6 +558,78 @@ export class MassImportService {
         syncStatus: 'IN_PROGRESS',
       },
       data: { syncStatus: 'COMPLETED' },
+    })
+  }
+
+  private async importParticipantsFromSet(
+    set: SetNode,
+    tournamentId: string,
+    entrantIdCache: Map<number, string>,
+    participantIds: Set<number>
+  ): Promise<void> {
+    for (const slot of set.slots || []) {
+      const entrant = slot.entrant
+      if (!entrant) continue
+
+      let entrantId = entrantIdCache.get(entrant.id)
+      if (!entrantId) {
+        const entrantRecord = await prisma.startGGEntrant.findUnique({
+          where: { startGgId: entrant.id },
+          select: { id: true },
+        })
+        if (!entrantRecord) continue
+        entrantId = entrantRecord.id
+        entrantIdCache.set(entrant.id, entrantId)
+      }
+
+      for (const participant of entrant.participants || []) {
+        const isNew = !participantIds.has(participant.id)
+        if (isNew) {
+          participantIds.add(participant.id)
+          await this.progress.update({
+            totalParticipants: this.progress.getProgress().totalParticipants + 1,
+          })
+        }
+
+        await this.upsertParticipant(participant, tournamentId, entrantId)
+
+        if (isNew) {
+          await this.progress.update({
+            processedParticipants:
+              this.progress.getProgress().processedParticipants + 1,
+          })
+        }
+      }
+    }
+  }
+
+  private async upsertParticipant(
+    participant: ParticipantNode,
+    tournamentId: string,
+    entrantId: string
+  ): Promise<void> {
+    const imageUrl = participant.user?.images?.[0]?.url ?? null
+
+    await prisma.startGGParticipant.upsert({
+      where: { startGgId: participant.id },
+      create: {
+        startGgId: participant.id,
+        tournamentId,
+        entrantId,
+        gamerTag: participant.gamerTag,
+        prefix: participant.prefix,
+        playerId: participant.player?.id,
+        userId: participant.user?.id,
+        imageUrl,
+      },
+      update: {
+        entrantId,
+        gamerTag: participant.gamerTag,
+        prefix: participant.prefix,
+        playerId: participant.player?.id,
+        userId: participant.user?.id,
+        imageUrl,
+      },
     })
   }
 }

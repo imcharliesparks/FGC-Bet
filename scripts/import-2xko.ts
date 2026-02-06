@@ -1,6 +1,9 @@
 #!/usr/bin/env bun
 import { MassImportService } from '../apps/web/lib/startgg/mass-import'
-import { TWOXKO_IMPORT_START_DATE } from '../apps/web/lib/startgg/constants'
+import {
+  TWOXKO_IMPORT_START_DATE,
+  TWOXKO_VIDEOGAME_NAME,
+} from '../apps/web/lib/startgg/constants'
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
@@ -44,6 +47,7 @@ async function main() {
 
   const service = new MassImportService(apiKey, {
     startDate: TWOXKO_IMPORT_START_DATE,
+    videogameName: TWOXKO_VIDEOGAME_NAME,
   })
 
   const startTime = Date.now()
