@@ -301,6 +301,34 @@ model StartGGEntrant {
   @@index([name])
 }
 
+model StartGGParticipant {
+  id              String              @id @default(cuid())
+  startGgId       Int                 @unique
+  tournamentId    String
+  tournament      StartGGTournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  entrantId       String?
+  entrant         StartGGEntrant?     @relation(fields: [entrantId], references: [id])
+
+  // Player info (point-in-time at registration)
+  gamerTag        String
+  prefix          String?
+  playerId        Int?
+  userId          Int?
+
+  // Profile info
+  country         String?
+  state           String?
+  imageUrl        String?
+  twitterHandle   String?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([tournamentId])
+  @@index([gamerTag])
+  @@index([playerId])
+}
+
 enum FightingGame {
   STREET_FIGHTER_6
   TEKKEN_8
