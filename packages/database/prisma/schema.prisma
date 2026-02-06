@@ -282,6 +282,25 @@ model StartGGSet {
   @@index([completedAt])
 }
 
+model StartGGEntrant {
+  id              String              @id @default(cuid())
+  startGgId       Int                 @unique
+  eventId         String
+  event           StartGGEvent        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name            String
+  initialSeedNum  Int?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  participants    StartGGParticipant[]
+  slot1Sets       StartGGSet[]        @relation("Slot1Sets")
+  slot2Sets       StartGGSet[]        @relation("Slot2Sets")
+
+  @@index([eventId])
+  @@index([name])
+}
+
 enum FightingGame {
   STREET_FIGHTER_6
   TEKKEN_8
