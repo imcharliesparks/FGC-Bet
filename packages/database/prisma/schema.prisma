@@ -201,6 +201,37 @@ model StartGGTournament {
   @@index([lastSyncedAt])
 }
 
+model StartGGEvent {
+  id              String              @id @default(cuid())
+  startGgId       Int                 @unique
+  tournamentId    String
+  tournament      StartGGTournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name            String
+  slug            String
+  type            Int?
+  videogameId     Int
+  videogameName   String
+  startAt         DateTime?
+  numEntrants     Int?
+  state           String?
+  isOnline        Boolean             @default(false)
+
+  // Sync metadata
+  lastSyncedAt    DateTime            @default(now())
+  syncStatus      StartGGSyncStatus   @default(PENDING)
+  syncError       String?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  sets            StartGGSet[]
+  entrants        StartGGEntrant[]
+
+  @@index([tournamentId])
+  @@index([videogameId])
+  @@index([syncStatus])
+}
+
 enum FightingGame {
   STREET_FIGHTER_6
   TEKKEN_8
