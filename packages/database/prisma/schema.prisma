@@ -232,6 +232,56 @@ model StartGGEvent {
   @@index([syncStatus])
 }
 
+model StartGGSet {
+  id              String              @id @default(cuid())
+  startGgId       Int                 @unique
+  eventId         String
+  event           StartGGEvent        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  phaseId         Int?
+  phaseGroupId    Int?
+
+  // Set details
+  fullRoundText   String?
+  round           Int?
+  identifier      String?
+  state           Int
+
+  // Timing
+  startAt         DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  // Slot 1 (Player/Team 1)
+  slot1EntrantId  String?
+  slot1Entrant    StartGGEntrant?     @relation("Slot1Sets", fields: [slot1EntrantId], references: [id])
+  slot1Score      Int?
+  slot1Standing   Int?
+
+  // Slot 2 (Player/Team 2)
+  slot2EntrantId  String?
+  slot2Entrant    StartGGEntrant?     @relation("Slot2Sets", fields: [slot2EntrantId], references: [id])
+  slot2Score      Int?
+  slot2Standing   Int?
+
+  // Result
+  winnerId        Int?
+  displayScore    String?
+  totalGames      Int?
+  bestOf          Int?
+
+  // Stream info
+  streamUrl       String?
+  stationNumber   Int?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([eventId])
+  @@index([state])
+  @@index([startAt])
+  @@index([completedAt])
+}
+
 enum FightingGame {
   STREET_FIGHTER_6
   TEKKEN_8
