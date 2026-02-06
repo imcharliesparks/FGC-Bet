@@ -158,9 +158,47 @@ model Transaction {
   relatedBetId      String?
   description       String?
   createdAt         DateTime      @default(now())
-  
+
   @@index([userId, createdAt])
   @@index([type, createdAt])
+}
+
+model StartGGTournament {
+  id                   String              @id @default(cuid())
+  startGgId            Int                 @unique
+  name                 String
+  slug                 String              @unique
+  startAt              DateTime
+  endAt                DateTime?
+  city                 String?
+  countryCode          String?
+  state                String?
+  venueAddress         String?
+  venueName            String?
+  numAttendees         Int?
+  primaryContact       String?
+  registrationClosesAt DateTime?
+  timezone             String?
+  imageUrl             String?
+  bannerUrl            String?
+  hashtag              String?
+  isOnline             Boolean             @default(false)
+  hasOfflineEvents     Boolean             @default(false)
+
+  // Sync metadata
+  lastSyncedAt         DateTime            @default(now())
+  syncStatus           StartGGSyncStatus   @default(PENDING)
+  syncError            String?
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  events               StartGGEvent[]
+  participants         StartGGParticipant[]
+
+  @@index([startAt])
+  @@index([syncStatus])
+  @@index([lastSyncedAt])
 }
 
 enum FightingGame {
