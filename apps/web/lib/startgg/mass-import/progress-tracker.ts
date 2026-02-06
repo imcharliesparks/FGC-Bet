@@ -1,6 +1,23 @@
 import { prisma } from '@/lib/db/prisma'
 import { getEventBus } from '@/lib/realtime/event-bus'
+import type { Prisma } from '@repo/database'
 import type { ImportProgress, ImportError } from './types'
+
+type ImportJobStatus =
+  | 'PENDING'
+  | 'RUNNING'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'CANCELLED'
+
+const STATUS_MAP: Record<ImportProgress['status'], ImportJobStatus> = {
+  pending: 'PENDING',
+  running: 'RUNNING',
+  completed: 'COMPLETED',
+  failed: 'FAILED',
+  cancelled: 'CANCELLED',
+}
 
 export class ProgressTracker {
   private progress: ImportProgress
@@ -64,7 +81,7 @@ export class ProgressTracker {
       await prisma.startGGImportJob.update({
         where: { id: this.progress.jobId },
         data: {
-          status: this.progress.status.toUpperCase() as any,
+          status: STATUS_MAP[this.progress.status],
           totalTournaments: this.progress.totalTournaments,
           processedTournaments: this.progress.processedTournaments,
           totalEvents: this.progress.totalEvents,
@@ -74,7 +91,7 @@ export class ProgressTracker {
           totalParticipants: this.progress.totalParticipants,
           processedParticipants: this.progress.processedParticipants,
           errorCount: this.progress.errorCount,
-          errors: this.progress.recentErrors as any,
+          errors: this.progress.recentErrors as Prisma.InputJsonValue,
           lastActivityAt: new Date(),
         },
       })
