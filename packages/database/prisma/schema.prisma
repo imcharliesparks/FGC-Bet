@@ -181,6 +181,22 @@ enum FightingGame {
   OTHER
 }
 
+enum StartGGSyncStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum ImportJobStatus {
+  PENDING
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
 enum MatchStatus {
   SCHEDULED
   LIVE
