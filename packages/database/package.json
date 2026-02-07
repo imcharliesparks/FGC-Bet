@@ -5,9 +5,9 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push --skip-generate && prisma generate",
-    "db:studio": "prisma studio",
+    "db:generate": "prisma generate --config prisma.config.ts",
+    "db:push": "prisma db push --config prisma.config.ts && prisma generate --config prisma.config.ts",
+    "db:studio": "prisma studio --config prisma.config.ts",
     "db:seed": "bun run seed.ts",
     "postinstall": "prisma generate"
   },
