@@ -12,11 +12,14 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^7.3.0"
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "pg": "^8.13.1"
   },
   "devDependencies": {
-    "prisma": "^7.3.0",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/pg": "^8.11.10",
+    "prisma": "^7.3.0"
   },
   "peerDependencies": {
     "typescript": "^5"
