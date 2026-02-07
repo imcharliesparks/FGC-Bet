@@ -9,7 +9,7 @@
  * }
  */
 export const STARTGG_VIDEOGAME_IDS = {
-  TWOXKO: 0, // TODO: Replace with actual ID from start.gg query
+  TWOXKO: 64423,
   STREET_FIGHTER_6: 43868,
   TEKKEN_8: 49783,
   GUILTY_GEAR_STRIVE: 33945,
