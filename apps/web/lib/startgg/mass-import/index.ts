@@ -226,6 +226,10 @@ export class MassImportService {
   private async upsertTournament(tournament: TournamentNode): Promise<void> {
     const profileImage = tournament.images?.find((i) => i.type === 'profile')?.url
     const bannerImage = tournament.images?.find((i) => i.type === 'banner')?.url
+    const tournamentState =
+      tournament.state === null || tournament.state === undefined
+        ? null
+        : String(tournament.state)
 
     await prisma.startGGTournament.upsert({
       where: { startGgId: tournament.id },
@@ -237,7 +241,7 @@ export class MassImportService {
         endAt: tournament.endAt ? new Date(tournament.endAt * 1000) : null,
         city: tournament.city,
         countryCode: tournament.countryCode,
-        state: tournament.state,
+        state: tournamentState,
         venueName: tournament.venueName,
         venueAddress: tournament.venueAddress,
         numAttendees: tournament.numAttendees,
@@ -256,7 +260,7 @@ export class MassImportService {
         endAt: tournament.endAt ? new Date(tournament.endAt * 1000) : null,
         city: tournament.city,
         countryCode: tournament.countryCode,
-        state: tournament.state,
+        state: tournamentState,
         numAttendees: tournament.numAttendees,
         isOnline: tournament.isOnline ?? false,
         hasOfflineEvents: tournament.hasOfflineEvents ?? false,
@@ -282,6 +286,8 @@ export class MassImportService {
     })
 
     if (!tournament) return
+    const eventState =
+      event.state === null || event.state === undefined ? null : String(event.state)
 
     await prisma.startGGEvent.upsert({
       where: { startGgId: event.id },
@@ -295,7 +301,7 @@ export class MassImportService {
         videogameName: event.videogame?.name || this.videogameName,
         startAt: event.startAt ? new Date(event.startAt * 1000) : null,
         numEntrants: event.numEntrants,
-        state: event.state,
+        state: eventState,
         isOnline: event.isOnline ?? false,
         syncStatus: 'IN_PROGRESS',
         lastSyncedAt: new Date(),
@@ -304,7 +310,7 @@ export class MassImportService {
         name: event.name,
         startAt: event.startAt ? new Date(event.startAt * 1000) : null,
         numEntrants: event.numEntrants,
-        state: event.state,
+        state: eventState,
         syncStatus: 'IN_PROGRESS',
         lastSyncedAt: new Date(),
       },
