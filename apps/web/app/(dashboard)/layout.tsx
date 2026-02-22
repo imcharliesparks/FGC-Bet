@@ -30,6 +30,12 @@ export default async function DashboardLayout({
                   Dashboard
                 </Link>
                 <Link
+                  href="/active-matches"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
+                >
+                  Active Matches
+                </Link>
+                <Link
                   href="/matches"
                   className="inline-flex items-center px-1 pt-1 text-sm font-medium text-zinc-300 hover:text-white"
                 >
@@ -89,6 +95,12 @@ export default async function DashboardLayout({
               className="block px-3 py-2 rounded-md text-base font-medium text-zinc-200 hover:text-white hover:bg-zinc-800/80"
             >
               Dashboard
+            </Link>
+            <Link
+              href="/active-matches"
+              className="block px-3 py-2 rounded-md text-base font-medium text-zinc-200 hover:text-white hover:bg-zinc-800/80"
+            >
+              Active Matches
             </Link>
             <Link
               href="/matches"

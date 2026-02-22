@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { BetType, MatchStatus } from '@repo/database'
 import { prisma } from '@/lib/db/prisma'
 import { OddsService } from '@/lib/betting/odds-service'
-import { publicProcedure, router } from '../trpc'
+import { protectedProcedure, publicProcedure, router } from '../trpc'
 import { type Prisma } from '@prisma/client'
 
 const oddsService = new OddsService()
@@ -126,4 +126,55 @@ export const matchesRouter = router({
       const odds = await oddsService.getCurrentOdds(input.matchId, input.betType)
       return odds
     }),
+
+  swipeable: protectedProcedure
+    .input(z.object({ tournamentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Get IDs of matches user already dismissed or bet on
+      const dismissed = await prisma.userMatchDismissal.findMany({
+        where: { userId: ctx.user!.id },
+        select: { matchId: true },
+      })
+      const existingBets = await prisma.bet.findMany({
+        where: { userId: ctx.user!.id, status: 'PENDING' },
+        select: { matchId: true },
+      })
+      const excludeIds = [
+        ...dismissed.map((d) => d.matchId),
+        ...existingBets.map((b) => b.matchId),
+      ]
+
+      // Fetch bettable matches not in exclude list
+      const matches = await prisma.match.findMany({
+        where: {
+          tournamentId: input.tournamentId,
+          bettingOpen: true,
+          status: 'SCHEDULED',
+          ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
+        },
+        include: { player1: true, player2: true, tournament: true },
+        orderBy: { scheduledStart: 'asc' },
+        take: 20,
+      })
+
+      return matches.map(serializeMatch)
+    }),
+
+  skip: protectedProcedure
+    .input(z.object({ matchId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await prisma.userMatchDismissal.upsert({
+        where: {
+          userId_matchId: { userId: ctx.user!.id, matchId: input.matchId },
+        },
+        update: {},
+        create: {
+          userId: ctx.user!.id,
+          matchId: input.matchId,
+          reason: 'SKIPPED',
+        },
+      })
+      return { success: true }
+    }),
 })
+

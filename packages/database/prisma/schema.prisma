@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -367,6 +368,17 @@ model StartGGImportJob {
 
   @@index([status])
   @@index([videogameId])
+}
+
+model UserMatchDismissal {
+  id        String   @id @default(cuid())
+  userId    String
+  matchId   String
+  reason    String   // "SKIPPED" | "BET_PLACED"
+  createdAt DateTime @default(now())
+
+  @@unique([userId, matchId])
+  @@index([userId])
 }
 
 enum FightingGame {
