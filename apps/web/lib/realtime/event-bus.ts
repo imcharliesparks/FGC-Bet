@@ -6,6 +6,7 @@ export type EventType =
   | 'odds:update'
   | 'bet:placed'
   | 'match:settled'
+  | 'import:progress'
 
 export interface MatchUpdate {
   matchId?: string
@@ -39,9 +40,37 @@ export interface MatchSettlement {
   matchId?: string
 }
 
+export interface ImportProgressEvent {
+  jobId: string
+  status: string
+  phase: string
+  currentItem: string
+  totalTournaments: number
+  processedTournaments: number
+  totalEvents: number
+  processedEvents: number
+  totalSets: number
+  processedSets: number
+  totalParticipants: number
+  processedParticipants: number
+  errorCount: number
+  recentErrors: Array<{ message: string; item: string; timestamp: number }>
+  startedAt: number
+  estimatedTimeRemaining?: number
+  rateInfo: {
+    requestsRemaining: number
+    windowResetAt: number
+  }
+}
+
 export interface RealtimeEvent {
   type: EventType
-  data: MatchUpdate | OddsUpdate | BetPlacedEvent | MatchSettlement
+  data:
+    | MatchUpdate
+    | OddsUpdate
+    | BetPlacedEvent
+    | MatchSettlement
+    | ImportProgressEvent
   timestamp: number
 }
 
@@ -137,7 +166,12 @@ export class RealtimeEventBus {
   async publish(
     channel: string,
     type: EventType,
-    data: MatchUpdate | OddsUpdate | BetPlacedEvent | MatchSettlement
+    data:
+      | MatchUpdate
+      | OddsUpdate
+      | BetPlacedEvent
+      | MatchSettlement
+      | ImportProgressEvent
   ): Promise<void> {
     const event: RealtimeEvent = {
       type,

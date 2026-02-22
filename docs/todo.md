@@ -1,6 +1,8 @@
 # To Dos
 ### Major
 - [ ] Add post-auth flow to handle ID verification, user info gathering, etc.
+- [ ] Add singular env file support
+- [ ] Migrate to dedicated server app structure
 
 ### Optional/Future Enhancements
 - [ ] Migrate from Clerk to Neon Auth

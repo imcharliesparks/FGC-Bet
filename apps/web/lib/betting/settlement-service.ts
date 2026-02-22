@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { WalletService } from '@/lib/wallet/service'
-import { Decimal } from '@prisma/client/runtime/library'
+
 import { getEventBus } from '@/lib/realtime/event-bus'
 import type { Prisma } from '@prisma/client'
 
@@ -127,7 +127,7 @@ export class SettlementService {
           data: {
             status: 'WON',
             settledAt: new Date(),
-            actualPayout: new Decimal(payout),
+            actualPayout: payout,
           },
         })
 
@@ -139,7 +139,7 @@ export class SettlementService {
           data: {
             status: 'LOST',
             settledAt: new Date(),
-            actualPayout: new Decimal(0),
+            actualPayout: 0,
           },
         })
 

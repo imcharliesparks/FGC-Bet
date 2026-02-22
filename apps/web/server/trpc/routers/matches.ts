@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { BetType, MatchStatus } from '@repo/database'
 import { prisma } from '@/lib/db/prisma'
 import { OddsService } from '@/lib/betting/odds-service'
-import { publicProcedure, router } from '../trpc'
+import { protectedProcedure, publicProcedure, router } from '../trpc'
 import { type Prisma } from '@prisma/client'
 
 const oddsService = new OddsService()
@@ -126,4 +126,53 @@ export const matchesRouter = router({
       const odds = await oddsService.getCurrentOdds(input.matchId, input.betType)
       return odds
     }),
+
+  swipeable: protectedProcedure
+    .input(z.object({ tournamentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Get IDs of matches user already dismissed (via raw SQL since UserMatchDismissal
+      // isn't exposed on the runtime PrismaClient in Prisma v7)
+      const dismissed = await prisma.$queryRawUnsafe<{ matchId: string }[]>(
+        'SELECT "matchId" FROM "UserMatchDismissal" WHERE "userId" = $1',
+        ctx.user!.id
+      )
+      const existingBets = await prisma.bet.findMany({
+        where: { userId: ctx.user!.id, status: 'PENDING' },
+        select: { matchId: true },
+      })
+      const excludeIds = [
+        ...dismissed.map((d) => d.matchId),
+        ...existingBets.map((b) => b.matchId),
+      ]
+
+      // Fetch bettable matches not in exclude list
+      const matches = await prisma.match.findMany({
+        where: {
+          tournamentId: input.tournamentId,
+          bettingOpen: true,
+          status: 'SCHEDULED',
+          ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
+        },
+        include: { player1: true, player2: true, tournament: true },
+        orderBy: { scheduledStart: 'asc' },
+        take: 20,
+      })
+
+      return matches.map(serializeMatch)
+    }),
+
+  skip: protectedProcedure
+    .input(z.object({ matchId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Use raw SQL since UserMatchDismissal isn't on the runtime PrismaClient
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "UserMatchDismissal" ("id", "userId", "matchId", "reason", "createdAt")
+         VALUES (gen_random_uuid(), $1, $2, 'SKIPPED', NOW())
+         ON CONFLICT ("userId", "matchId") DO NOTHING`,
+        ctx.user!.id,
+        input.matchId
+      )
+      return { success: true }
+    }),
 })
+

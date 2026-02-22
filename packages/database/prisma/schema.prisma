@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -158,9 +158,227 @@ model Transaction {
   relatedBetId      String?
   description       String?
   createdAt         DateTime      @default(now())
-  
+
   @@index([userId, createdAt])
   @@index([type, createdAt])
+}
+
+model StartGGTournament {
+  id                   String              @id @default(cuid())
+  startGgId            Int                 @unique
+  name                 String
+  slug                 String              @unique
+  startAt              DateTime
+  endAt                DateTime?
+  city                 String?
+  countryCode          String?
+  state                String?
+  venueAddress         String?
+  venueName            String?
+  numAttendees         Int?
+  primaryContact       String?
+  registrationClosesAt DateTime?
+  timezone             String?
+  imageUrl             String?
+  bannerUrl            String?
+  hashtag              String?
+  isOnline             Boolean             @default(false)
+  hasOfflineEvents     Boolean             @default(false)
+
+  // Sync metadata
+  lastSyncedAt         DateTime            @default(now())
+  syncStatus           StartGGSyncStatus   @default(PENDING)
+  syncError            String?
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  events               StartGGEvent[]
+  participants         StartGGParticipant[]
+
+  @@index([startAt])
+  @@index([syncStatus])
+  @@index([lastSyncedAt])
+}
+
+model StartGGEvent {
+  id              String              @id @default(cuid())
+  startGgId       Int                 @unique
+  tournamentId    String
+  tournament      StartGGTournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name            String
+  slug            String
+  type            Int?
+  videogameId     Int
+  videogameName   String
+  startAt         DateTime?
+  numEntrants     Int?
+  state           String?
+  isOnline        Boolean             @default(false)
+
+  // Sync metadata
+  lastSyncedAt    DateTime            @default(now())
+  syncStatus      StartGGSyncStatus   @default(PENDING)
+  syncError       String?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  sets            StartGGSet[]
+  entrants        StartGGEntrant[]
+
+  @@index([tournamentId])
+  @@index([videogameId])
+  @@index([syncStatus])
+}
+
+model StartGGSet {
+  id              String              @id @default(cuid())
+  startGgId       Int                 @unique
+  eventId         String
+  event           StartGGEvent        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  phaseId         Int?
+  phaseGroupId    Int?
+
+  // Set details
+  fullRoundText   String?
+  round           Int?
+  identifier      String?
+  state           Int
+
+  // Timing
+  startAt         DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  // Slot 1 (Player/Team 1)
+  slot1EntrantId  String?
+  slot1Entrant    StartGGEntrant?     @relation("Slot1Sets", fields: [slot1EntrantId], references: [id])
+  slot1Score      Int?
+  slot1Standing   Int?
+
+  // Slot 2 (Player/Team 2)
+  slot2EntrantId  String?
+  slot2Entrant    StartGGEntrant?     @relation("Slot2Sets", fields: [slot2EntrantId], references: [id])
+  slot2Score      Int?
+  slot2Standing   Int?
+
+  // Result
+  winnerId        Int?
+  displayScore    String?
+  totalGames      Int?
+  bestOf          Int?
+
+  // Stream info
+  streamUrl       String?
+  stationNumber   Int?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([eventId])
+  @@index([state])
+  @@index([startAt])
+  @@index([completedAt])
+}
+
+model StartGGEntrant {
+  id              String              @id @default(cuid())
+  startGgId       Int                 @unique
+  eventId         String
+  event           StartGGEvent        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name            String
+  initialSeedNum  Int?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  participants    StartGGParticipant[]
+  slot1Sets       StartGGSet[]        @relation("Slot1Sets")
+  slot2Sets       StartGGSet[]        @relation("Slot2Sets")
+
+  @@index([eventId])
+  @@index([name])
+}
+
+model StartGGParticipant {
+  id              String              @id @default(cuid())
+  startGgId       Int                 @unique
+  tournamentId    String
+  tournament      StartGGTournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  entrantId       String?
+  entrant         StartGGEntrant?     @relation(fields: [entrantId], references: [id])
+
+  // Player info (point-in-time at registration)
+  gamerTag        String
+  prefix          String?
+  playerId        Int?
+  userId          Int?
+
+  // Profile info
+  country         String?
+  state           String?
+  imageUrl        String?
+  twitterHandle   String?
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([tournamentId])
+  @@index([gamerTag])
+  @@index([playerId])
+}
+
+model StartGGImportJob {
+  id                    String              @id @default(cuid())
+  status                ImportJobStatus     @default(PENDING)
+
+  // Job configuration
+  videogameId           Int
+  videogameName         String
+  startDate             DateTime
+  endDate               DateTime?
+
+  // Progress tracking
+  totalTournaments      Int                 @default(0)
+  processedTournaments  Int                 @default(0)
+  totalEvents           Int                 @default(0)
+  processedEvents       Int                 @default(0)
+  totalSets             Int                 @default(0)
+  processedSets         Int                 @default(0)
+  totalParticipants     Int                 @default(0)
+  processedParticipants Int                 @default(0)
+
+  // Error tracking
+  errorCount            Int                 @default(0)
+  errors                Json?
+
+  // Current position (for resume)
+  currentTournamentPage Int                 @default(1)
+  currentTournamentId   String?
+  currentEventId        String?
+
+  // Timing
+  startedAt             DateTime?
+  completedAt           DateTime?
+  lastActivityAt        DateTime            @default(now())
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([status])
+  @@index([videogameId])
+}
+
+model UserMatchDismissal {
+  id        String   @id @default(cuid())
+  userId    String
+  matchId   String
+  reason    String   // "SKIPPED" | "BET_PLACED"
+  createdAt DateTime @default(now())
+
+  @@unique([userId, matchId])
+  @@index([userId])
 }
 
 enum FightingGame {
@@ -178,7 +396,24 @@ enum FightingGame {
   SUPER_SMASH_BROS_MELEE
   SUPER_SMASH_BROS_ULTIMATE
   SUPER_SMASH_BROS_BRAWL
+  TWOXKO
   OTHER
+}
+
+enum StartGGSyncStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum ImportJobStatus {
+  PENDING
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+  CANCELLED
 }
 
 enum MatchStatus {
