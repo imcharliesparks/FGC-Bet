@@ -4,7 +4,7 @@ import { OddsService } from './odds-service'
 import { OddsCalculator } from './odds-calculator'
 import { BetType, BetSelection } from '@repo/database'
 import type { Prisma } from '@prisma/client'
-import { Decimal } from '@prisma/client/runtime/library'
+
 import { getEventBus } from '@/lib/realtime/event-bus'
 
 export interface PlaceBetParams {
@@ -102,9 +102,9 @@ export class BettingService {
           matchId,
           betType,
           selection,
-          amount: new Decimal(amount),
-          odds: new Decimal(oddsForSelection),
-          potentialPayout: new Decimal(potentialPayout),
+          amount: amount,
+          odds: oddsForSelection,
+          potentialPayout: potentialPayout,
           status: 'PENDING',
         },
         include: {

@@ -130,11 +130,12 @@ export const matchesRouter = router({
   swipeable: protectedProcedure
     .input(z.object({ tournamentId: z.string() }))
     .query(async ({ ctx, input }) => {
-      // Get IDs of matches user already dismissed or bet on
-      const dismissed = await prisma.userMatchDismissal.findMany({
-        where: { userId: ctx.user!.id },
-        select: { matchId: true },
-      })
+      // Get IDs of matches user already dismissed (via raw SQL since UserMatchDismissal
+      // isn't exposed on the runtime PrismaClient in Prisma v7)
+      const dismissed = await prisma.$queryRawUnsafe<{ matchId: string }[]>(
+        'SELECT "matchId" FROM "UserMatchDismissal" WHERE "userId" = $1',
+        ctx.user!.id
+      )
       const existingBets = await prisma.bet.findMany({
         where: { userId: ctx.user!.id, status: 'PENDING' },
         select: { matchId: true },
@@ -163,17 +164,14 @@ export const matchesRouter = router({
   skip: protectedProcedure
     .input(z.object({ matchId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      await prisma.userMatchDismissal.upsert({
-        where: {
-          userId_matchId: { userId: ctx.user!.id, matchId: input.matchId },
-        },
-        update: {},
-        create: {
-          userId: ctx.user!.id,
-          matchId: input.matchId,
-          reason: 'SKIPPED',
-        },
-      })
+      // Use raw SQL since UserMatchDismissal isn't on the runtime PrismaClient
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "UserMatchDismissal" ("id", "userId", "matchId", "reason", "createdAt")
+         VALUES (gen_random_uuid(), $1, $2, 'SKIPPED', NOW())
+         ON CONFLICT ("userId", "matchId") DO NOTHING`,
+        ctx.user!.id,
+        input.matchId
+      )
       return { success: true }
     }),
 })

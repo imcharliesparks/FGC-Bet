@@ -7,6 +7,22 @@ import { type FullMatch } from '@/types/matches'
 import { useMatchOdds } from '@/hooks/useMatchOdds'
 import { formatGameName } from '@/lib/utils/format'
 
+function PlayerAvatar({ name, imageUrl, ringColor }: { name: string; imageUrl?: string | null; ringColor: string }) {
+  const initials = name.slice(0, 2).toUpperCase()
+  return (
+    <div className={`relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-zinc-700 ring-2 ${ringColor}`}>
+      {imageUrl ? (
+        <Image src={imageUrl} alt={name} width={64} height={64} className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-600 to-zinc-800 text-lg font-bold text-zinc-300">
+          {initials}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
 interface SwipeCardProps {
   match: FullMatch
   isTop: boolean
@@ -153,15 +169,7 @@ export function SwipeCard({ match, isTop, onSwipe }: SwipeCardProps) {
         <div className="flex flex-col items-center justify-center gap-4 px-6 py-6 flex-1">
           {/* Player 1 */}
           <div className="flex w-full items-center gap-4 rounded-xl bg-zinc-800/60 p-4">
-            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-zinc-700 ring-2 ring-red-500/40">
-              <Image
-                src={match.player1.imageUrl || '/default-player.png'}
-                alt={match.player1.gamerTag}
-                width={64}
-                height={64}
-                className="h-full w-full object-cover"
-              />
-            </div>
+            <PlayerAvatar name={match.player1.gamerTag} imageUrl={match.player1.imageUrl} ringColor="ring-red-500/40" />
             <div className="flex-1 min-w-0">
               <div className="text-lg font-bold text-white truncate">
                 {match.player1.gamerTag}
@@ -192,15 +200,7 @@ export function SwipeCard({ match, isTop, onSwipe }: SwipeCardProps) {
 
           {/* Player 2 */}
           <div className="flex w-full items-center gap-4 rounded-xl bg-zinc-800/60 p-4">
-            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-zinc-700 ring-2 ring-blue-500/40">
-              <Image
-                src={match.player2.imageUrl || '/default-player.png'}
-                alt={match.player2.gamerTag}
-                width={64}
-                height={64}
-                className="h-full w-full object-cover"
-              />
-            </div>
+            <PlayerAvatar name={match.player2.gamerTag} imageUrl={match.player2.imageUrl} ringColor="ring-blue-500/40" />
             <div className="flex-1 min-w-0">
               <div className="text-lg font-bold text-white truncate">
                 {match.player2.gamerTag}

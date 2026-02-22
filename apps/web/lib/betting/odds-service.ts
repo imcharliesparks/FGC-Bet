@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db/prisma'
 import { OddsCalculator } from './odds-calculator'
 import { BetType } from '@repo/database'
-import { Decimal } from '@prisma/client/runtime/library'
+
 
 export class OddsService {
   private calculator: OddsCalculator
@@ -56,10 +56,10 @@ export class OddsService {
       data: {
         matchId,
         betType: 'MONEYLINE',
-        player1Odds: new Decimal(player1Odds),
-        player2Odds: new Decimal(player2Odds),
-        player1Volume: new Decimal(0),
-        player2Volume: new Decimal(0),
+        player1Odds: player1Odds,
+        player2Odds: player2Odds,
+        player1Volume: 0,
+        player2Volume: 0,
       },
     })
 
@@ -157,10 +157,10 @@ export class OddsService {
       data: {
         matchId,
         betType,
-        player1Odds: new Decimal(adjustedPlayer1Odds),
-        player2Odds: new Decimal(adjustedPlayer2Odds),
-        player1Volume: new Decimal(newPlayer1Volume),
-        player2Volume: new Decimal(newPlayer2Volume),
+        player1Odds: adjustedPlayer1Odds,
+        player2Odds: adjustedPlayer2Odds,
+        player1Volume: newPlayer1Volume,
+        player2Volume: newPlayer2Volume,
       },
     })
 
