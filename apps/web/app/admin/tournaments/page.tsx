@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma'
 import { formatGameName, formatRelativeTime } from '@/lib/utils/format'
 import Link from 'next/link'
 import { ImportTournamentForm } from '@/components/admin/import-tournament-form'
+import { MassImportPanel } from '@/components/admin/mass-import-panel'
 import type { Prisma } from '@prisma/client'
 
 type AdminTournament = Prisma.TournamentGetPayload<{
@@ -41,6 +42,8 @@ export default async function AdminTournamentsPage() {
         </h2>
         <ImportTournamentForm />
       </div>
+
+      <MassImportPanel />
 
       {/* Tournaments Table */}
       <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/80 shadow-xl shadow-black/20">

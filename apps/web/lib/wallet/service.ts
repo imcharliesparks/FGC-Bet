@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { TransactionType } from '@repo/database'
-import type { Prisma } from '@prisma/client'
-import { Decimal } from '@prisma/client/runtime/library'
+import { Prisma } from '@prisma/client'
 
 export class WalletService {
   /**
@@ -43,7 +42,7 @@ export class WalletService {
       // Update user balance
       await tx.user.update({
         where: { id: userId },
-        data: { chipBalance: new Decimal(balanceAfter) },
+        data: { chipBalance: new Prisma.Decimal(balanceAfter) },
       })
 
       // Create transaction record
@@ -51,9 +50,9 @@ export class WalletService {
         data: {
           userId,
           type,
-          amount: new Decimal(amount),
-          balanceBefore: new Decimal(balanceBefore),
-          balanceAfter: new Decimal(balanceAfter),
+          amount: new Prisma.Decimal(amount),
+          balanceBefore: new Prisma.Decimal(balanceBefore),
+          balanceAfter: new Prisma.Decimal(balanceAfter),
           description: description || `${type}: ${amount} chips`,
           relatedBetId,
         },
@@ -95,7 +94,7 @@ export class WalletService {
       // Update user balance
       await tx.user.update({
         where: { id: userId },
-        data: { chipBalance: new Decimal(balanceAfter) },
+        data: { chipBalance: new Prisma.Decimal(balanceAfter) },
       })
 
       // Create transaction record
@@ -103,9 +102,9 @@ export class WalletService {
         data: {
           userId,
           type,
-          amount: new Decimal(amount),
-          balanceBefore: new Decimal(balanceBefore),
-          balanceAfter: new Decimal(balanceAfter),
+          amount: new Prisma.Decimal(amount),
+          balanceBefore: new Prisma.Decimal(balanceBefore),
+          balanceAfter: new Prisma.Decimal(balanceAfter),
           description: description || `${type}: ${amount} chips`,
           relatedBetId,
         },

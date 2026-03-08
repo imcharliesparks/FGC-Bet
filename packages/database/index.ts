@@ -7,16 +7,31 @@ import {
   MatchStatus,
   FightingGame,
 } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
+const prismaClientSingleton = () => {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    // Prevent connection timeouts during long-running operations
+    connectionTimeoutMillis: 10000, // 10 seconds to establish connection
+    idleTimeoutMillis: 600000, // 10 minutes idle before disconnect (default is 10 sec)
+    max: 20, // Maximum pool size
+  });
+  const adapter = new PrismaPg(pool);
+
+  return new PrismaClient({
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
+};
+
+export const prisma =
+  globalForPrisma.prisma ?? prismaClientSingleton();
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 

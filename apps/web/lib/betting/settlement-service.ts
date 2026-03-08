@@ -1,8 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { WalletService } from '@/lib/wallet/service'
-import { Decimal } from '@prisma/client/runtime/library'
-import { getEventBus } from '@/lib/realtime/event-bus'
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 export class SettlementService {
   private walletService: typeof WalletService
@@ -76,7 +74,7 @@ export class SettlementService {
     }
 
     // Publish settlement event
-    const eventBus = getEventBus()
+    const eventBus = await import('@/lib/realtime/event-bus').then(m => m.getEventBus())
     await eventBus.publishMatchSettled(matchId, result)
 
     return result
@@ -127,7 +125,7 @@ export class SettlementService {
           data: {
             status: 'WON',
             settledAt: new Date(),
-            actualPayout: new Decimal(payout),
+            actualPayout: new Prisma.Decimal(payout),
           },
         })
 
@@ -139,7 +137,7 @@ export class SettlementService {
           data: {
             status: 'LOST',
             settledAt: new Date(),
-            actualPayout: new Decimal(0),
+            actualPayout: new Prisma.Decimal(0),
           },
         })
 
