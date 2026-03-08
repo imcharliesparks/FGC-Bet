@@ -6,6 +6,8 @@ import {
   TOURNAMENTS_BY_VIDEOGAME_QUERY,
   PAST_TOURNAMENTS_BY_VIDEOGAME_QUERY,
   EVENT_SETS_QUERY,
+  EVENT_SETS_LIGHT_QUERY,
+  EVENT_ENTRANTS_QUERY,
 } from './queries'
 import {
   TWOXKO_VIDEOGAME_ID,
@@ -23,6 +25,7 @@ import type {
   EntrantNode,
   ParticipantNode,
   SetNode,
+  EventEntrantsResponse,
 } from './types'
 
 export class MassImportService {
@@ -34,6 +37,7 @@ export class MassImportService {
   private videogameId: number
   private videogameName: string
   private startDate: Date
+  private readonly complexityErrorMessage = 'query complexity is too high'
 
   constructor(
     apiKey: string,
@@ -110,6 +114,26 @@ export class MassImportService {
    */
   private isCancelled(): boolean {
     return this.abortController.signal.aborted
+  }
+
+  private isComplexityError(error: unknown): boolean {
+    if (error instanceof Error) {
+      if (error.message.toLowerCase().includes(this.complexityErrorMessage)) {
+        return true
+      }
+    }
+
+    if (typeof error === 'object' && error !== null && 'response' in error) {
+      const response = (error as { response?: { errors?: Array<{ message?: string }> } })
+        .response
+      return (
+        response?.errors?.some((err) =>
+          err?.message?.toLowerCase().includes(this.complexityErrorMessage)
+        ) ?? false
+      )
+    }
+
+    return false
   }
 
   /**
@@ -346,7 +370,8 @@ export class MassImportService {
 
       let page = 1
       let totalPages = 1
-      const perPage = STARTGG_PAGINATION.SETS_PER_PAGE
+      let perPage = STARTGG_PAGINATION.SETS_PER_PAGE
+      let useLightQuery = false
 
       while (page <= totalPages) {
         if (this.isCancelled()) return
@@ -355,7 +380,7 @@ export class MassImportService {
 
         try {
           const response = await this.client.request<EventSetsResponse>(
-            EVENT_SETS_QUERY,
+            useLightQuery ? EVENT_SETS_LIGHT_QUERY : EVENT_SETS_QUERY,
             {
               eventId: event.startGgId,
               page,
@@ -382,6 +407,16 @@ export class MassImportService {
 
           page++
         } catch (error) {
+          if (this.isComplexityError(error) && perPage > 10) {
+            useLightQuery = true
+            perPage = Math.max(10, Math.floor(perPage / 2))
+            this.progress.addError({
+              message:
+                'Query complexity too high; retrying with lightweight sets query and smaller page size.',
+              item: event.name,
+            })
+            continue
+          }
           this.progress.addError({
             message: error instanceof Error ? error.message : 'Failed to fetch sets',
             item: event.name,
@@ -499,7 +534,6 @@ export class MassImportService {
     })
 
     const participantIds = new Set<number>()
-    const entrantIdCache = new Map<number, string>()
 
     for (const event of events) {
       if (this.isCancelled()) return
@@ -508,7 +542,7 @@ export class MassImportService {
 
       let page = 1
       let totalPages = 1
-      const perPage = STARTGG_PAGINATION.SETS_PER_PAGE
+      let perPage = STARTGG_PAGINATION.ENTRANTS_PER_PAGE
 
       while (page <= totalPages) {
         if (this.isCancelled()) return
@@ -516,8 +550,8 @@ export class MassImportService {
         await this.rateLimiter.acquire()
 
         try {
-          const response = await this.client.request<EventSetsResponse>(
-            EVENT_SETS_QUERY,
+          const response = await this.client.request<EventEntrantsResponse>(
+            EVENT_ENTRANTS_QUERY,
             {
               eventId: event.startGgId,
               page,
@@ -525,23 +559,50 @@ export class MassImportService {
             }
           )
 
-          if (page === 1 && response.event?.sets?.pageInfo) {
-            totalPages = response.event.sets.pageInfo.totalPages || 1
+          if (page === 1 && response.event?.entrants?.pageInfo) {
+            totalPages = response.event.entrants.pageInfo.totalPages || 1
           }
 
-          if (response.event?.sets?.nodes) {
-            for (const set of response.event.sets.nodes) {
-              await this.importParticipantsFromSet(
-                set,
-                event.tournamentId,
-                entrantIdCache,
-                participantIds
-              )
+          if (response.event?.entrants?.nodes) {
+            for (const entrant of response.event.entrants.nodes) {
+              const entrantId = await this.upsertEntrant(entrant, event.id)
+              for (const participant of entrant.participants || []) {
+                const isNew = !participantIds.has(participant.id)
+                if (isNew) {
+                  participantIds.add(participant.id)
+                  await this.progress.update({
+                    totalParticipants:
+                      this.progress.getProgress().totalParticipants + 1,
+                  })
+                }
+
+                await this.upsertParticipant(
+                  participant,
+                  event.tournamentId,
+                  entrantId
+                )
+
+                if (isNew) {
+                  await this.progress.update({
+                    processedParticipants:
+                      this.progress.getProgress().processedParticipants + 1,
+                  })
+                }
+              }
             }
           }
 
           page++
         } catch (error) {
+          if (this.isComplexityError(error) && perPage > 10) {
+            perPage = Math.max(10, Math.floor(perPage / 2))
+            this.progress.addError({
+              message:
+                'Query complexity too high; retrying with lower entrants page size.',
+              item: event.name,
+            })
+            continue
+          }
           this.progress.addError({
             message:
               error instanceof Error
@@ -562,48 +623,6 @@ export class MassImportService {
       },
       data: { syncStatus: 'COMPLETED' },
     })
-  }
-
-  private async importParticipantsFromSet(
-    set: SetNode,
-    tournamentId: string,
-    entrantIdCache: Map<number, string>,
-    participantIds: Set<number>
-  ): Promise<void> {
-    for (const slot of set.slots || []) {
-      const entrant = slot.entrant
-      if (!entrant) continue
-
-      let entrantId = entrantIdCache.get(entrant.id)
-      if (!entrantId) {
-        const entrantRecord = await prisma.startGGEntrant.findUnique({
-          where: { startGgId: entrant.id },
-          select: { id: true },
-        })
-        if (!entrantRecord) continue
-        entrantId = entrantRecord.id
-        entrantIdCache.set(entrant.id, entrantId)
-      }
-
-      for (const participant of entrant.participants || []) {
-        const isNew = !participantIds.has(participant.id)
-        if (isNew) {
-          participantIds.add(participant.id)
-          await this.progress.update({
-            totalParticipants: this.progress.getProgress().totalParticipants + 1,
-          })
-        }
-
-        await this.upsertParticipant(participant, tournamentId, entrantId)
-
-        if (isNew) {
-          await this.progress.update({
-            processedParticipants:
-              this.progress.getProgress().processedParticipants + 1,
-          })
-        }
-      }
-    }
   }
 
   private async upsertParticipant(

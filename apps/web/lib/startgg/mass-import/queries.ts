@@ -253,3 +253,57 @@ export const EVENT_ENTRANTS_QUERY = `
     }
   }
 `
+/**
+ * Query sets for an event with pagination (lightweight fallback)
+ */
+export const EVENT_SETS_LIGHT_QUERY = `
+  query EventSetsLight($eventId: ID!, $page: Int!, $perPage: Int!) {
+    event(id: $eventId) {
+      id
+      name
+      sets(page: $page, perPage: $perPage, sortType: STANDARD) {
+        pageInfo {
+          total
+          totalPages
+        }
+        nodes {
+          id
+          fullRoundText
+          round
+          identifier
+          state
+          startAt
+          startedAt
+          completedAt
+          displayScore
+          totalGames
+          winnerId
+          station {
+            number
+          }
+          phaseGroup {
+            id
+            phase {
+              id
+            }
+          }
+          slots {
+            standing {
+              placement
+              stats {
+                score {
+                  value
+                }
+              }
+            }
+            entrant {
+              id
+              name
+              initialSeedNum
+            }
+          }
+        }
+      }
+    }
+  }
+`

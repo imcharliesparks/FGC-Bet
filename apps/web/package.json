@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "generate:mock-data": "bun run scripts/generate-mock-data.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.14.1",
